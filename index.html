@@ -271,4 +271,20 @@
 
     function resetBoard() {
       if (confirm("Alles resetten?")) {
-        data.tasks = JSON.parse(JSON.stringify(original
+        data.tasks = JSON.parse(JSON.stringify(originalData));
+        data.votes = {};
+        renderAllColumns();
+        saveToSheets();
+      }
+    }
+
+    document.querySelectorAll('.column').forEach(col => {
+      col.ondrop = drop;
+      col.ondragover = allowDrop;
+    });
+
+    data.tasks = JSON.parse(JSON.stringify(originalData));
+    renderAllColumns();
+  </script>
+</body>
+</html>
