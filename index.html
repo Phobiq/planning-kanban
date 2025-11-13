@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Planning 2026 - Live via Google Sheets</title>
+  <title>Planning 2026 - Live</title>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
     .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9em; margin-bottom: 10px; }
-    .status { text-align: center; font-weight: bold; margin: 10px 0; color: #27ae60; }
+    .status { text-align: center; font-weight: bold; margin: 10px 0; }
     .user-input { text-align: center; margin: 15px 0; }
     .user-input input { padding: 8px 12px; width: 180px; border: 1px solid #ccc; border-radius: 6px; }
     .user-input button { padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 8px; }
@@ -33,6 +33,7 @@
     .delivery h2 { border-color: #27ae60; color: #229954; }
     .card { background: white; padding: 12px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.95em; cursor: grab; display: flex; justify-content: space-between; align-items: center; }
     .card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+    .card.dragging { opacity: 0.6; transform: rotate(5deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
     .vote-badge { background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8em; cursor: pointer; position: relative; }
     .vote-badge.voted { background: #27ae60; }
     .vote-details { position: absolute; top: 35px; right: -10px; background: #2c3e50; color: white; padding: 8px; border-radius: 6px; font-size: 0.8em; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; display: none; }
@@ -79,8 +80,8 @@
 
   <script>
     // === VUL HIER JE GEGEVENS IN ===
-    const SHEET_ID = "18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI"; // <-- Vervang met jouw ID
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0ceKtjAXnmaW6A6BgdCaLjYvu7Ec6dBaKgtICqFz_wlDegGDr_jK92e81BqloCOQ/exec"; // <-- Vervang met jouw Web App URL
+    const SHEET_ID = "JOUW_SHEET_ID"; // Vervang met jouw ID
+    const SCRIPT_URL = "JOUW_WEB_APP_URL"; // Vervang na deploy
 
     const originalData = {
       scoping: ["Koppeling datawarehouse Agentschap", "Het verwijderen van het indicatieve rekeningcourant rentetarief", "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)", "Solution for running the DBUs without a change to the deployment pipeline", "Archivering voor database reductie"],
@@ -91,39 +92,206 @@
     const data = { tasks: {}, votes: {} };
     let currentUser = null;
 
-    // === Laad data ===
+    // === Laad van Sheets ===
     async function loadFromSheets() {
       try {
         const res = await fetch(`${SCRIPT_URL}?action=read&id=${SHEET_ID}`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
         const json = await res.json();
-        data.tasks = json.tasks || originalData;
+        data.tasks = json.tasks || JSON.parse(JSON.stringify(originalData));
         data.votes = json.votes || {};
         renderAllColumns();
         document.getElementById('status').textContent = 'Live verbonden!';
         document.getElementById('status').style.color = '#27ae60';
       } catch (e) {
-        document.getElementById('status').textContent = 'Fout bij laden: ' + e.message;
+        console.error(e);
+        document.getElementById('status').textContent = 'Fout: ' + e.message;
         document.getElementById('status').style.color = '#e74c3c';
       }
     }
 
     // === Opslaan ===
     async function saveToSheets() {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'write', id: SHEET_ID, data: { tasks: data.tasks, votes: data.votes } }),
-        headers: { 'Content-Type': 'text/plain' }
-      });
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'write', id: SHEET_ID, data: { tasks: data.tasks, votes: data.votes } }),
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      } catch (e) { console.error(e); }
     }
 
-    // === Poll elke 3 sec ===
+    // === Poll ===
     setInterval(loadFromSheets, 3000);
     window.onload = () => setTimeout(loadFromSheets, 500);
 
-    // === Rest van de code (setUser, render, drag & drop, export, etc.) ===
-    // (Zie volledige versie in vorige berichten – ik voeg hem toe als je wilt)
+    // === Gebruiker ===
+    function setUser() {
+      const name = document.getElementById('user-name').value.trim();
+      if (!name) return alert("Voer een naam in!");
+      currentUser = name;
+      document.getElementById('current-user-display').style.display = 'block';
+      document.getElementById('user-name-display').textContent = name;
+      document.getElementById('user-name').value = '';
+    }
 
-    // === Voor nu: test met lokale data ===
+    // === Render ===
+    function renderAllColumns() {
+      Object.keys(data.tasks).forEach(col => {
+        const container = document.getElementById(col + '-cards');
+        container.innerHTML = '';
+        data.tasks[col].forEach(text => {
+          const voteObj = data.votes[text] || {};
+          const total = Object.values(voteObj).reduce((a, b) => a + b, 0);
+          container.appendChild(createCard(text, voteObj, total));
+        });
+      });
+    }
+
+    function createCard(text, voteObj, total) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.draggable = true;
+      card.ondragstart = drag;
+
+      const span = document.createElement('span');
+      span.textContent = text;
+      span.style.flex = '1';
+
+      const badge = document.createElement('div');
+      badge.className = 'vote-badge';
+      if (total > 0) badge.classList.add('voted');
+      badge.textContent = total;
+
+      const details = document.createElement('div');
+      details.className = 'vote-details';
+      let html = '';
+      for (const [n, c] of Object.entries(voteObj)) html += `<div>${n}: ${c}</div>`;
+      if (!html) html = '<div>Nog geen stemmen</div>';
+      details.innerHTML = html;
+      badge.appendChild(details);
+
+      badge.onclick = (e) => {
+        e.stopPropagation();
+        if (!currentUser) return alert("Voer eerst je naam in!");
+        if (!data.votes[text]) data.votes[text] = {};
+        data.votes[text][currentUser] = (data.votes[text][currentUser] || 0) + 1;
+        saveToSheets();
+      };
+
+      badge.onmouseenter = () => details.classList.add('show');
+      badge.onmouseleave = () => details.classList.remove('show');
+
+      card.appendChild(span);
+      card.appendChild(badge);
+      return card;
+    }
+
+    // === Drag & Drop ===
+    function allowDrop(e) { e.preventDefault(); }
+    function drag(e) {
+      const card = e.target.closest('.card');
+      e.dataTransfer.setData("text", card.querySelector('span').textContent);
+      card.classList.add('dragging');
+    }
+    function drop(e) {
+      e.preventDefault();
+      const text = e.dataTransfer.getData("text");
+      const card = Array.from(document.querySelectorAll('.card')).find(c => c.querySelector('span').textContent === text);
+      if (!card || !e.target.closest('.column')) return;
+      const col = e.target.closest('.column');
+      col.querySelector('div[id$="-cards"]').appendChild(card);
+      card.classList.remove('dragging');
+      updateDataFromDOM();
+      saveToSheets();
+    }
+    function updateDataFromDOM() {
+      document.querySelectorAll('.column').forEach(col => {
+        const key = col.dataset.column;
+        data.tasks[key] = Array.from(col.querySelectorAll('.card span')).map(s => s.textContent);
+      });
+    }
+
+    // === Sorteren ===
+    function sortByVotes() {
+      updateDataFromDOM();
+      Object.keys(data.tasks).forEach(col => {
+        data.tasks[col].sort((a, b) => {
+          const va = Object.values(data.votes[a] || {}).reduce((x,y)=>x+y,0);
+          const vb = Object.values(data.votes[b] || {}).reduce((x,y)=>x+y,0);
+          return vb - va;
+        });
+      });
+      renderAllColumns();
+      saveToSheets();
+    }
+
+    // === Export ===
+    function exportToCSV() {
+      updateDataFromDOM();
+      let csv = "Fase,Taak,Totaal,Stemmers\r\n";
+      const names = { scoping: "Scoping", refinement: "Refinement", delivery: "Delivery" };
+      Object.keys(data.tasks).forEach(col => {
+        data.tasks[col].forEach(text => {
+          const v = data.votes[text] || {};
+          const total = Object.values(v).reduce((a,b)=>a+b,0);
+          const stemmers = Object.entries(v).map(([n,c])=>`${n}:${c}`).join(" | ");
+          csv += `"${names[col]}","${text.replace(/"/g,'""')}","${total}","${stemmers}"\r\n`;
+        });
+      });
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `planning-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function exportToPNG() {
+      const controls = document.querySelector('.controls');
+      const userInput = document.querySelector('.user-input');
+      const currentUser = document.querySelector('.current-user');
+      controls.style.display = 'none'; userInput.style.display = 'none'; currentUser.style.display = 'none';
+      html2canvas(document.body, { scale: 2 }).then(canvas => {
+        controls.style.display = ''; userInput.style.display = ''; currentUser.style.display = '';
+        const link = document.createElement('a');
+        link.download = `planning-${new Date().toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'mm', 'a4');
+      const width = doc.internal.pageSize.getWidth();
+      doc.setFontSize(16); doc.text("Planning 2026", width / 2, 20, { align: 'center' });
+      html2canvas(document.querySelector('.kanban'), { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = width - 40;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        doc.addImage(imgData, 'PNG', 20, 30, imgWidth, imgHeight);
+        doc.save(`planning-${new Date().toISOString().slice(0,10)}.pdf`);
+      });
+    }
+
+    function toggleExportMenu() {
+      document.getElementById('export-menu').classList.toggle('show');
+    }
+
+    function resetBoard() {
+      if (confirm("Alles resetten?")) {
+        data.tasks = JSON.parse(JSON.stringify(originalData));
+        data.votes = {};
+        renderAllColumns();
+        saveToSheets();
+      }
+    }
+
+    document.querySelectorAll('.column').forEach(col => {
+      col.ondrop = drop;
+      col.ondragover = allowDrop;
+    });
+
+    // Start met lege data
     data.tasks = JSON.parse(JSON.stringify(originalData));
     renderAllColumns();
   </script>
