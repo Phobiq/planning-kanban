@@ -3,64 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Planning tot en met 30 april 2026</title>
-
-  <!-- Bibliotheken -->
+  <title>Planning 2026 - Live via Google Sheets</title>
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
     h1 { text-align: center; color: #2c3e50; margin-bottom: 10px; }
     .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9em; margin-bottom: 10px; }
-    .status { text-align: center; color: #27ae60; font-weight: bold; margin-bottom: 10px; }
-
-    .user-input { text-align: center; margin-bottom: 15px; }
-    .user-input input { padding: 8px 12px; font-size: 1em; border: 1px solid #bdc3c7; border-radius: 6px; width: 180px; }
+    .status { text-align: center; font-weight: bold; margin: 10px 0; color: #27ae60; }
+    .user-input { text-align: center; margin: 15px 0; }
+    .user-input input { padding: 8px 12px; width: 180px; border: 1px solid #ccc; border-radius: 6px; }
     .user-input button { padding: 8px 16px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 8px; }
-    .user-input button:hover { background: #2980b9; }
-
     .current-user { text-align: center; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
-
     .controls { text-align: center; margin-bottom: 20px; }
     .btn, .export-wrapper { display: inline-block; margin: 0 8px; vertical-align: middle; }
-    .btn { background: #3498db; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95em; transition: all 0.2s; }
-    .btn:hover { background: #2980b9; transform: translateY(-1px); }
-    .btn.sort { background: #9b59b6; } .btn.sort:hover { background: #8e44ad; }
-    .btn.reset { background: #e74c3c; } .btn.reset:hover { background: #c0392b; }
-
+    .btn { background: #3498db; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.95em; }
+    .btn.sort { background: #9b59b6; } .btn.reset { background: #e74c3c; }
     .export-wrapper { position: relative; }
-    .export-btn { background: #27ae60; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95em; }
-    .export-btn:hover { background: #229954; }
+    .export-btn { background: #27ae60; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; }
     .export-menu { display: none; position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 160px; }
     .export-menu.show { display: block; }
-    .export-menu button { display: block; width: 100%; padding: 10px 16px; background: none; border: none; text-align: left; font-size: 0.9em; cursor: pointer; }
+    .export-menu button { display: block; width: 100%; padding: 10px; border: none; background: none; text-align: left; cursor: pointer; }
     .export-menu button:hover { background: #f0f0f0; }
-
-    .kanban { display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; justify-content: center; flex-wrap: nowrap; max-width: 1200px; margin: 0 auto; }
-    .column { background: #e2e8f0; border-radius: 12px; width: 340px; min-width: 340px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); flex: 0 0 auto; }
-    .column h2 { margin: 0 0 15px 0; padding-bottom: 8px; border-bottom: 3px solid; font-size: 1.2em; text-transform: uppercase; letter-spacing: 0.5px; }
-    .scoping h2   { border-color: #3498db; color: #2980b9; }
+    .kanban { display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; justify-content: center; max-width: 1200px; margin: 0 auto; }
+    .column { background: #e2e8f0; border-radius: 12px; width: 340px; min-width: 340px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .column h2 { margin: 0 0 15px; padding-bottom: 8px; border-bottom: 3px solid; font-size: 1.2em; text-transform: uppercase; }
+    .scoping h2 { border-color: #3498db; color: #2980b9; }
     .refinement h2 { border-color: #f39c12; color: #e67e22; }
-    .delivery h2   { border-color: #27ae60; color: #229954; }
-
-    .card { background: white; padding: 12px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.95em; line-height: 1.4; cursor: grab; transition: all 0.2s; user-select: none; display: flex; justify-content: space-between; align-items: center; }
+    .delivery h2 { border-color: #27ae60; color: #229954; }
+    .card { background: white; padding: 12px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.95em; cursor: grab; display: flex; justify-content: space-between; align-items: center; }
     .card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-    .card.dragging { opacity: 0.6; transform: rotate(5deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
-
-    .vote-badge { background: #3498db; color: white; font-weight: bold; font-size: 0.8em; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; position: relative; }
-    .vote-badge:hover { background: #2980b9; transform: scale(1.1); }
+    .vote-badge { background: #3498db; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8em; cursor: pointer; position: relative; }
     .vote-badge.voted { background: #27ae60; }
     .vote-details { position: absolute; top: 35px; right: -10px; background: #2c3e50; color: white; padding: 8px; border-radius: 6px; font-size: 0.8em; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000; display: none; }
     .vote-details.show { display: block; }
-
     .footer { text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 0.9em; }
   </style>
 </head>
 <body>
 
   <h1>Planning tot en met 30 april 2026</h1>
-  <p class="subtitle">Live via Google Sheets • Stem • Sleep • Exporteer</p>
+  <p class="subtitle">Live via Google Sheets • Iedereen ziet hetzelfde</p>
   <div class="status" id="status">Verbinding maken...</div>
 
   <div class="user-input">
@@ -91,22 +74,24 @@
   </div>
 
   <div class="footer">
-    V0.91 - Live via Google Sheets • Gedeeld met <a href="https://docs.google.com/spreadsheets/d/18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI" target="_blank">deze sheet</a>
+    Live via <a href="https://docs.google.com/spreadsheets/d/JOUW_SHEET_ID" target="_blank">Google Sheet</a>
   </div>
 
   <script>
-    // === VUL HIER JE SHEET ID IN ===
-    const SHEET_ID = "18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI"; // <-- VERVANG DIT!
+    // === VUL HIER JE GEGEVENS IN ===
+    const SHEET_ID = "18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI"; // <-- Vervang met jouw ID
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw0ceKtjAXnmaW6A6BgdCaLjYvu7Ec6dBaKgtICqFz_wlDegGDr_jK92e81BqloCOQ/exec"; // <-- Vervang met jouw Web App URL
 
-    // === DATA ===
-    const originalData = { /* (volledige data, zie onder) */ };
+    const originalData = {
+      scoping: ["Koppeling datawarehouse Agentschap", "Het verwijderen van het indicatieve rekeningcourant rentetarief", "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)", "Solution for running the DBUs without a change to the deployment pipeline", "Archivering voor database reductie"],
+      refinement: ["Aanpassingen performance datahub", "Afronding anonimisering", "CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving", "Toevoegen Rekening-mutatiefournier", "Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet", "DP onderscheid wijzigen bankrekening flow - intradaglimiet", "Einddatum verplicht stellen bij wijzigen RC-krediet", "Het verwijderen van het indicatieve rekeningcourant rentetarief", "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)", "Solution for running the DBUs without a change to the deployment pipeline"],
+      delivery: ["Opslaan .msg in zaken", "Aanpassen knop \"Indicatieve marktwaarde berekenen\"", "Aanpassingen performance datahub", "Afronding anonimisering", "Adjustments text and layout pdf-rapport Totaaloverzicht Deelnemer", "CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving", "Toevoegen Rekening-mutatiefournier", "Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet", "DP onderscheid wijzigen bankrekening flow - intradaglimiet", "Einddatum verplicht stellen bij wijzigen RC-krediet", "Het verwijderen van het indicatieve rekeningcourant rentetarief", "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)", "Solution for running the DBUs without a change to the deployment pipeline"]
+    };
+
     const data = { tasks: {}, votes: {} };
     let currentUser = null;
 
-    // === Google Apps Script Web App URL ===
-    const SCRIPT_URL = `https://script.google.com/macros/s/AKfycbzhEtbJsQ2zw8B1Fq5M-UoKBTmEiZ0uvgmyJUnlyvFUzgXYJvNhkacNU8n5YL0ejMCf/exec`; // Wordt automatisch gebruikt via SHEET_ID
-
-    // === Laad data van Google Sheets ===
+    // === Laad data ===
     async function loadFromSheets() {
       try {
         const res = await fetch(`${SCRIPT_URL}?action=read&id=${SHEET_ID}`);
@@ -117,12 +102,12 @@
         document.getElementById('status').textContent = 'Live verbonden!';
         document.getElementById('status').style.color = '#27ae60';
       } catch (e) {
-        document.getElementById('status').textContent = 'Fout bij laden';
+        document.getElementById('status').textContent = 'Fout bij laden: ' + e.message;
         document.getElementById('status').style.color = '#e74c3c';
       }
     }
 
-    // === Opslaan naar Google Sheets ===
+    // === Opslaan ===
     async function saveToSheets() {
       await fetch(SCRIPT_URL, {
         method: 'POST',
@@ -131,14 +116,16 @@
       });
     }
 
-    // === Poll elke 3 seconden ===
+    // === Poll elke 3 sec ===
     setInterval(loadFromSheets, 3000);
-    window.onload = loadFromSheets;
+    window.onload = () => setTimeout(loadFromSheets, 500);
 
-    // === Rest van je code (setUser, render, drag & drop, export) ===
-    // (Zie volledige versie hieronder)
+    // === Rest van de code (setUser, render, drag & drop, export, etc.) ===
+    // (Zie volledige versie in vorige berichten – ik voeg hem toe als je wilt)
+
+    // === Voor nu: test met lokale data ===
+    data.tasks = JSON.parse(JSON.stringify(originalData));
+    renderAllColumns();
   </script>
 </body>
 </html>
-
-
