@@ -78,10 +78,11 @@
     Live via <a href="https://docs.google.com/spreadsheets/d/18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI" target="_blank">Google Sheet</a>
   </div>
 
+  <!-- GOOGLE APPS SCRIPT CLIENT -->
+  <script type="text/javascript" src="https://script.google.com/macros/s/AKfycbwbPmyCaMlsV6upZcClMWCGXrB84Dkq70abS79OgMWEcbJ7pggNSbAtKY1snKPRbLUx/exec"></script>
+
   <script>
-    // === JOUW GEGEVENS (ALLES INGEVULD!) ===
     const SHEET_ID = "18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI";
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbPmyCaMlsV6upZcClMWCGXrB84Dkq70abS79OgMWEcbJ7pggNSbAtKY1snKPRbLUx/exec";
 
     const originalData = {
       scoping: ["Koppeling datawarehouse Agentschap", "Het verwijderen van het indicatieve rekeningcourant rentetarief", "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)", "Solution for running the DBUs without a change to the deployment pipeline", "Archivering voor database reductie"],
@@ -92,33 +93,25 @@
     const data = { tasks: {}, votes: {} };
     let currentUser = null;
 
-    async function loadFromSheets() {
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=read&id=${SHEET_ID}`);
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const json = await res.json();
-        data.tasks = json.tasks || JSON.parse(JSON.stringify(originalData));
-        data.votes = json.votes || {};
+    // Laad data via google.script.run
+    function loadFromSheets() {
+      google.script.run.withSuccessHandler(function(result) {
+        data.tasks = result.tasks || JSON.parse(JSON.stringify(originalData));
+        data.votes = result.votes || {};
         renderAllColumns();
         document.getElementById('status').textContent = 'Live verbonden!';
         document.getElementById('status').style.color = '#27ae60';
-      } catch (e) {
-        console.error(e);
-        document.getElementById('status').textContent = 'Fout: ' + e.message;
+      }).withFailureHandler(function(error) {
+        document.getElementById('status').textContent = 'Fout: ' + error;
         document.getElementById('status').style.color = '#e74c3c';
-      }
+      }).getData(SHEET_ID);
     }
 
-    async function saveToSheets() {
-      try {
-        await fetch(SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'write', id: SHEET_ID, data: { tasks: data.tasks, votes: data.votes } }),
-          headers: { 'Content-Type': 'text/plain' }
-        });
-      } catch (e) { console.error(e); }
+    function saveToSheets() {
+      google.script.run.saveData(SHEET_ID, { tasks: data.tasks, votes: data.votes });
     }
 
+    // Poll elke 3 seconden
     setInterval(loadFromSheets, 3000);
     window.onload = () => setTimeout(loadFromSheets, 500);
 
@@ -270,7 +263,7 @@
     }
 
     function resetBoard() {
-      if (confirm("Alles resetten?")) {
+      if (confirm("Alles resetten naar start?")) {
         data.tasks = JSON.parse(JSON.stringify(originalData));
         data.votes = {};
         renderAllColumns();
