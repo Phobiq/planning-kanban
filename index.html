@@ -75,13 +75,13 @@
   </div>
 
   <div class="footer">
-    Live via <a href="https://docs.google.com/spreadsheets/d/JOUW_SHEET_ID" target="_blank">Google Sheet</a>
+    Live via <a href="https://docs.google.com/spreadsheets/d/18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI" target="_blank">Google Sheet</a>
   </div>
 
   <script>
-    // === VUL HIER JE GEGEVENS IN ===
-    const SHEET_ID = "JOUW_SHEET_ID"; // Vervang met jouw ID
-    const SCRIPT_URL = "JOUW_WEB_APP_URL"; // Vervang na deploy
+    // === JOUW GEGEVENS (ALLES INGEVULD!) ===
+    const SHEET_ID = "18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbPmyCaMlsV6upZcClMWCGXrB84Dkq70abS79OgMWEcbJ7pggNSbAtKY1snKPRbLUx/exec";
 
     const originalData = {
       scoping: ["Koppeling datawarehouse Agentschap", "Het verwijderen van het indicatieve rekeningcourant rentetarief", "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)", "Solution for running the DBUs without a change to the deployment pipeline", "Archivering voor database reductie"],
@@ -92,7 +92,6 @@
     const data = { tasks: {}, votes: {} };
     let currentUser = null;
 
-    // === Laad van Sheets ===
     async function loadFromSheets() {
       try {
         const res = await fetch(`${SCRIPT_URL}?action=read&id=${SHEET_ID}`);
@@ -110,7 +109,6 @@
       }
     }
 
-    // === Opslaan ===
     async function saveToSheets() {
       try {
         await fetch(SCRIPT_URL, {
@@ -121,11 +119,9 @@
       } catch (e) { console.error(e); }
     }
 
-    // === Poll ===
     setInterval(loadFromSheets, 3000);
     window.onload = () => setTimeout(loadFromSheets, 500);
 
-    // === Gebruiker ===
     function setUser() {
       const name = document.getElementById('user-name').value.trim();
       if (!name) return alert("Voer een naam in!");
@@ -135,7 +131,6 @@
       document.getElementById('user-name').value = '';
     }
 
-    // === Render ===
     function renderAllColumns() {
       Object.keys(data.tasks).forEach(col => {
         const container = document.getElementById(col + '-cards');
@@ -187,7 +182,6 @@
       return card;
     }
 
-    // === Drag & Drop ===
     function allowDrop(e) { e.preventDefault(); }
     function drag(e) {
       const card = e.target.closest('.card');
@@ -212,7 +206,6 @@
       });
     }
 
-    // === Sorteren ===
     function sortByVotes() {
       updateDataFromDOM();
       Object.keys(data.tasks).forEach(col => {
@@ -226,7 +219,6 @@
       saveToSheets();
     }
 
-    // === Export ===
     function exportToCSV() {
       updateDataFromDOM();
       let csv = "Fase,Taak,Totaal,Stemmers\r\n";
@@ -279,21 +271,4 @@
 
     function resetBoard() {
       if (confirm("Alles resetten?")) {
-        data.tasks = JSON.parse(JSON.stringify(originalData));
-        data.votes = {};
-        renderAllColumns();
-        saveToSheets();
-      }
-    }
-
-    document.querySelectorAll('.column').forEach(col => {
-      col.ondrop = drop;
-      col.ondragover = allowDrop;
-    });
-
-    // Start met lege data
-    data.tasks = JSON.parse(JSON.stringify(originalData));
-    renderAllColumns();
-  </script>
-</body>
-</html>
+        data.tasks = JSON.parse(JSON.stringify(original
