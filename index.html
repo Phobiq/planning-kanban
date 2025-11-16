@@ -544,9 +544,32 @@ badge.onmouseleave = () => {
       });
     }
 
-    function saveBoard() {
-      localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
-    }
+async function saveBoard() {
+  // 1. Sla lokaal op (fallback)
+  localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
+
+  // 2. Verstuur naar Google Sheets
+  const webAppUrl = 'https://script.google.com/macros/s/AKfycby5M4q4da15-T6iYhWQR_4S9QiPo1nfXDn-kGaml9ofA3n0DVA9GAs5bBpksQAp7Fdi/exec'; // <-- VERVANG DIT
+  
+  const payload = {
+    taskMap: data.taskMap,
+    tasks: data.tasks,
+    votes: data.votes
+  };
+
+  try {
+    await fetch(webAppUrl, {
+      method: 'POST',
+      mode: 'no-cors', // Nodig voor Google Apps Script
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    console.log('Stemmen opgeslagen in Google Sheets');
+  } catch (error) {
+    console.warn('Kon niet opslaan in Sheets (offline?):', error);
+    // Werkt nog steeds lokaal!
+  }
+}
 
     function resetBoard() {
       if (confirm("Weet je zeker dat je alles wilt resetten?")) {
@@ -577,6 +600,7 @@ badge.onmouseleave = () => {
   </script>
 </body>
 </html>
+
 
 
 
