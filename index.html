@@ -4,74 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Planning tot en met 30 april 2026</title>
-
   <!-- Bibliotheken -->
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
   <style>
+    :root {
+      --primary: #3498db;
+      --success: #27ae60;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --purple: #9b59b6;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+      --bg: #f4f6f9;
+    }
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f9;
+      background: var(--bg);
       margin: 0;
-      padding: 20px;
+      padding: 15px;
+      line-height: 1.5;
     }
     h1 {
       text-align: center;
-      color: #2c3e50;
-      margin-bottom: 10px;
+      color: var(--dark);
+      margin: 0 0 8px;
+      font-size: 1.6em;
     }
     .subtitle {
       text-align: center;
       color: #7f8c8d;
       font-size: 0.9em;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
-    .user-input {
+    .user-input, .controls, .search-filter {
       text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 14px;
     }
-    /* Fix: inline-block voor knoppen */
-    .controls {
-      text-align: center;
-      margin-bottom: 20px;
+    input, button, select {
+      font: inherit;
+      border-radius: 6px;
     }
-    .btn, .export-wrapper {
-      display: inline-block;
-      margin: 0 8px;
-      vertical-align: middle;
+    input[type="text"], select {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      margin: 0 6px;
+      min-width: 180px;
     }
-    .btn {
-      background: #3498db;
+    .btn, .export-btn {
+      background: var(--primary);
       color: white;
       border: none;
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 6px;
       cursor: pointer;
-      font-size: 0.95em;
+      font-size: 0.92em;
       transition: all 0.2s;
+      margin: 0 6px;
     }
-    .btn:hover { background: #2980b9; transform: translateY(-1px); }
-    .btn.sort { background: #9b59b6; }
-    .btn.sort:hover { background: #8e44ad; }
-    .btn.reset { background: #e74c3c; }
-    .btn.reset:hover { background: #c0392b; }
+    .btn:hover, .export-btn:hover { filter: brightness(0.9); transform: translateY(-1px); }
+    .btn.sort { background: var(--purple); }
+    .btn.reset { background: var(--danger); }
+    .export-btn { background: var(--success); }
 
-    /* Export knop + dropdown */
     .export-wrapper {
       position: relative;
+      display: inline-block;
     }
-    .export-btn {
-      background: #27ae60;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.95em;
-      transition: all 0.2s;
-    }
-    .export-btn:hover { background: #229954; }
     .export-menu {
       display: none;
       position: absolute;
@@ -84,6 +84,7 @@
       z-index: 1000;
       min-width: 160px;
       overflow: hidden;
+      margin-top: 4px;
     }
     .export-menu.show { display: block; }
     .export-menu button {
@@ -99,44 +100,62 @@
     }
     .export-menu button:hover { background: #f0f0f0; }
 
+    .current-user {
+      text-align: center;
+      font-weight: bold;
+      color: var(--dark);
+      margin: 8px 0;
+      font-size: 0.95em;
+    }
+
     .kanban {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       overflow-x: auto;
-      padding: 20px 0;
-      justify-content: center;
-      flex-wrap: nowrap;
-      max-width: 1200px;
+      padding: 10px 0;
+      justify-content: flex-start;
+      max-width: 100%;
       margin: 0 auto;
     }
     .column {
       background: #e2e8f0;
       border-radius: 12px;
-      width: 340px;
-      min-width: 340px;
-      padding: 15px;
+      width: 320px;
+      min-width: 320px;
+      padding: 14px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       flex: 0 0 auto;
     }
     .column h2 {
-      margin: 0 0 15px 0;
-      padding-bottom: 8px;
+      margin: 0 0 12px;
+      padding-bottom: 6px;
       border-bottom: 3px solid;
-      font-size: 1.2em;
+      font-size: 1.15em;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .scoping h2   { border-color: #3498db; color: #2980b9; }
-    .refinement h2 { border-color: #f39c12; color: #e67e22; }
-    .delivery h2   { border-color: #27ae60; color: #229954; }
+    .column h2 span {
+      font-size: 0.8em;
+      font-weight: normal;
+      color: #555;
+      background: rgba(255,255,255,0.7);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .scoping h2 { border-color: var(--primary); color: #2980b9; }
+    .refinement h2 { border-color: var(--warning); color: #e67e22; }
+    .delivery h2 { border-color: var(--success); color: #229954; }
 
     .card {
       background: white;
-      padding: 12px;
-      margin-bottom: 10px;
+      padding: 11px;
+      margin-bottom: 9px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 0.95em;
+      font-size: 0.92em;
       line-height: 1.4;
       cursor: grab;
       transition: all 0.2s;
@@ -144,12 +163,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      position: relative;
     }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-    .card.dragging { opacity: 0.6; transform: rotate(5deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
+    .card.dragging { opacity: 0.6; transform: rotate(4deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
 
     .vote-badge {
-      background: #3498db;
+      background: #95a5a6;
       color: white;
       font-weight: bold;
       font-size: 0.8em;
@@ -163,58 +183,83 @@
       transition: all 0.2s;
       position: relative;
     }
-    .vote-badge:hover { background: #2980b9; transform: scale(1.1); }
-    .vote-badge.voted { background: #27ae60; }
+    .vote-badge:hover { transform: scale(1.12); }
+    .vote-badge.voted { background: var(--success); }
+    .vote-badge.my-vote { background: var(--primary); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary); }
+
     .vote-details {
       position: absolute;
-      top: 35px;
+      top: 34px;
       right: -10px;
-      background: #2c3e50;
+      background: var(--dark);
       color: white;
       padding: 8px;
       border-radius: 6px;
-      font-size: 0.8em;
+      font-size: 0.78em;
       white-space: nowrap;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       z-index: 1000;
       display: none;
+      pointer-events: none;
     }
     .vote-details.show { display: block; }
+    .vote-details::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: 12px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid var(--dark);
+    }
 
-    .current-user {
-      text-align: center;
-      font-weight: bold;
-      color: #2c3e50;
-      margin-bottom: 10px;
+    .search-filter input {
+      width: 260px;
+      max-width: 100%;
     }
 
     .footer {
       text-align: center;
       margin-top: 30px;
       color: #7f8c8d;
-      font-size: 0.9em;
+      font-size: 0.88em;
+    }
+
+    @media (max-width: 768px) {
+      .kanban { gap: 12px; padding: 8px 0; }
+      .column { width: 300px; min-width: 300px; padding: 12px; }
+      .btn, .export-btn { padding: 8px 12px; font-size: 0.88em; margin: 4px; }
+      input[type="text"], select { width: 100%; margin: 6px 0; }
     }
   </style>
 </head>
 <body>
-
   <h1>Planning tot en met 30 april 2026</h1>
-  <p class="subtitle">Stem • Sleep • Sorteer • Exporteer als CSV, PNG of PDF</p>
+  <p class="subtitle">Stem • Sleep • Sorteer • Zoek • Exporteer</p>
 
   <!-- NAAM INVOEREN -->
   <div class="user-input">
     <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)" />
-    <button onclick="setUser()">Stemmen instellen</button>
+    <button class="btn" onclick="setUser()">Stemmen instellen</button>
   </div>
   <div class="current-user" id="current-user-display" style="display:none;">
     Je stemt als: <strong id="user-name-display"></strong>
   </div>
 
+  <!-- ZOEK + FILTER -->
+  <div class="search-filter">
+    <input type="text" id="search-input" placeholder="Zoeken in taken..." onkeyup="filterCards()" />
+    <select id="filter-my-votes" onchange="filterCards()">
+      <option value="">Alle taken</option>
+      <option value="my">Alleen mijn stemmen</option>
+    </select>
+  </div>
+
   <!-- CONTROLS -->
   <div class="controls">
     <button class="btn sort" onclick="sortByVotes()">Sorteren op stemmen</button>
-
-    <!-- EXPORT MENU -->
     <div class="export-wrapper">
       <button class="export-btn" onclick="toggleExportMenu()">Exporteer</button>
       <div class="export-menu" id="export-menu">
@@ -223,86 +268,66 @@
         <button onclick="exportToPDF()">PDF (Document)</button>
       </div>
     </div>
-
     <button class="btn reset" onclick="resetBoard()">Reset</button>
   </div>
 
   <!-- KANBAN -->
   <div class="kanban" id="kanban">
     <div class="column scoping" data-column="scoping">
-      <h2>1. Scoping (To Do)</h2>
+      <h2>1. Scoping (To Do) <span id="scoping-count">0 taken</span></h2>
       <div id="scoping-cards"></div>
     </div>
     <div class="column refinement" data-column="refinement">
-      <h2>2. Refinement (In Progress)</h2>
+      <h2>2. Refinement (In Progress) <span id="refinement-count">0 taken</span></h2>
       <div id="refinement-cards"></div>
     </div>
     <div class="column delivery" data-column="delivery">
-      <h2>3. Delivery (Done)</h2>
+      <h2>3. Delivery (Done) <span id="delivery-count">0 taken</span></h2>
       <div id="delivery-cards"></div>
     </div>
   </div>
 
   <div class="footer">
-    Gemaakt met liefde door BasAI • Werkt offline • Alles gefixt!
+    Gemaakt met liefde door BasAI • Werkt offline • Versie 2.0
   </div>
 
   <script>
-    // === VOLLEDIGE DATA (boven alles!) ===
+    // === DATA MET UNIEKE ID's ===
+    const originalTasks = [
+      "Koppeling datawarehouse Agentschap",
+      "Het verwijderen van het indicatieve rekeningcourant rentetarief",
+      "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)",
+      "Solution for running the DBUs without a change to the deployment pipeline",
+      "Archivering voor database reductie",
+      "Aanpassingen performance datahub",
+      "Afronding anonimisering",
+      "CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving",
+      "Toevoegen Rekening-mutatiefournier",
+      "Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet",
+      "DP onderscheid wijzigen bankrekening flow - intradaglimiet",
+      "Einddatum verplicht stellen bij wijzigen RC-krediet",
+      "Opslaan .msg in zaken",
+      "Aanpassen knop \"Indicatieve marktwaarde berekenen\"",
+      "Adjustments text and layout pdf-rapport Totaaloverzicht Deelnemer"
+    ].map((text, i) => ({ id: `task-${i+1}`, text }));
+
     const originalData = {
-      scoping: [
-        "Koppeling datawarehouse Agentschap",
-        "Het verwijderen van het indicatieve rekeningcourant rentetarief",
-        "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)",
-        "Solution for running the DBUs without a change to the deployment pipeline",
-        "Archivering voor database reductie"
-      ],
-      refinement: [
-        "Aanpassingen performance datahub",
-        "Afronding anonimisering",
-        "CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving",
-        "Toevoegen Rekening-mutatiefournier",
-        "Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet",
-        "DP onderscheid wijzigen bankrekening flow - intradaglimiet",
-        "Einddatum verplicht stellen bij wijzigen RC-krediet",
-        "Het verwijderen van het indicatieve rekeningcourant rentetarief",
-        "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)",
-        "Solution for running the DBUs without a change to the deployment pipeline"
-      ],
-      delivery: [
-        "Opslaan .msg in zaken",
-        "Aanpassen knop \"Indicatieve marktwaarde berekenen\"",
-        "Aanpassingen performance datahub",
-        "Afronding anonimisering",
-        "Adjustments text and layout pdf-rapport Totaaloverzicht Deelnemer",
-        "CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving",
-        "Toevoegen Rekening-mutatiefournier",
-        "Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet",
-        "DP onderscheid wijzigen bankrekening flow - intradaglimiet",
-        "Einddatum verplicht stellen bij wijzigen RC-krediet",
-        "Het verwijderen van het indicatieve rekeningcourant rentetarief",
-        "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)",
-        "Solution for running the DBUs without a change to the deployment pipeline"
-      ]
+      scoping: originalTasks.slice(0, 5).map(t => t.id),
+      refinement: originalTasks.slice(5, 15).map(t => t.id),
+      delivery: originalTasks.slice(15).map(t => t.id)
     };
 
     // === GLOBALE VARIABELEN ===
-    const data = { tasks: {}, votes: {} };
+    const data = { tasks: {}, votes: {}, taskMap: {} };
     let currentUser = null;
 
-    // === EXPORT MENU ===
-    function toggleExportMenu() {
-      const menu = document.getElementById('export-menu');
-      menu.classList.toggle('show');
+    // === INIT ===
+    function init() {
+      // Maak taskMap
+      originalTasks.forEach(t => data.taskMap[t.id] = t.text);
+      // Laad of reset
+      loadBoard();
     }
-
-    // Sluit menu bij klik buiten
-    document.addEventListener('click', function(e) {
-      const wrapper = document.querySelector('.export-wrapper');
-      if (!wrapper.contains(e.target)) {
-        document.getElementById('export-menu').classList.remove('show');
-      }
-    });
 
     // === GEBRUIKER ===
     function setUser() {
@@ -314,6 +339,7 @@
       document.getElementById('user-name').value = '';
       saveUser();
       renderAllColumns();
+      filterCards();
     }
 
     function saveUser() {
@@ -322,37 +348,47 @@
 
     // === LAAD + RENDER ===
     function loadBoard() {
-      const saved = localStorage.getItem('kanban-board-voting');
-      const loaded = saved ? JSON.parse(saved) : { tasks: originalData, votes: {} };
-      data.tasks = JSON.parse(JSON.stringify(loaded.tasks));
-      data.votes = loaded.votes || {};
-
+      const saved = localStorage.getItem('kanban-board-v3');
+      if (saved) {
+        const loaded = JSON.parse(saved);
+        data.tasks = loaded.tasks || JSON.parse(JSON.stringify(originalData));
+        data.votes = loaded.votes || {};
+      } else {
+        data.tasks = JSON.parse(JSON.stringify(originalData));
+        data.votes = {};
+      }
       currentUser = localStorage.getItem('kanban-current-user');
       if (currentUser) {
         document.getElementById('current-user-display').style.display = 'block';
         document.getElementById('user-name-display').textContent = currentUser;
       }
-
       renderAllColumns();
+      updateColumnCounts();
+      filterCards();
     }
 
     function renderAllColumns() {
       Object.keys(data.tasks).forEach(col => {
         const container = document.getElementById(col + '-cards');
         container.innerHTML = '';
-        data.tasks[col].forEach(text => {
-          const voteObj = data.votes[text] || {};
+        const visibleTasks = getFilteredTasks(col);
+        visibleTasks.forEach(id => {
+          const text = data.taskMap[id];
+          const voteObj = data.votes[id] || {};
           const total = Object.values(voteObj).reduce((a, b) => a + b, 0);
-          container.appendChild(createCard(text, voteObj, total));
+          const userVoted = currentUser && voteObj[currentUser] > 0;
+          container.appendChild(createCard(id, text, voteObj, total, userVoted));
         });
       });
+      updateColumnCounts();
     }
 
-    function createCard(text, voteObj, total) {
+    function createCard(id, text, voteObj, total, userVoted) {
       const card = document.createElement('div');
       card.className = 'card';
       card.draggable = true;
       card.ondragstart = drag;
+      card.dataset.taskId = id;
 
       const span = document.createElement('span');
       span.textContent = text;
@@ -361,12 +397,15 @@
       const badge = document.createElement('div');
       badge.className = 'vote-badge';
       if (total > 0) badge.classList.add('voted');
+      if (userVoted) badge.classList.add('my-vote');
       badge.textContent = total;
 
       const details = document.createElement('div');
       details.className = 'vote-details';
       let html = '';
-      for (const [n, c] of Object.entries(voteObj)) html += `<div>${n}: ${c}</div>`;
+      for (const [n, c] of Object.entries(voteObj)) {
+        html += `<div><strong>${n}</strong>: ${c}</div>`;
+      }
       if (!html) html = '<div>Nog geen stemmen</div>';
       details.innerHTML = html;
       badge.appendChild(details);
@@ -374,10 +413,17 @@
       badge.onclick = (e) => {
         e.stopPropagation();
         if (!currentUser) return alert("Voer eerst je naam in!");
-        if (!data.votes[text]) data.votes[text] = {};
-        data.votes[text][currentUser] = (data.votes[text][currentUser] || 0) + 1;
+        if (!data.votes[id]) data.votes[id] = {};
+        if (data.votes[id][currentUser]) {
+          data.votes[id][currentUser]--;
+          if (data.votes[id][currentUser] <= 0) delete data.votes[id][currentUser];
+          if (Object.keys(data.votes[id]).length === 0) delete data.votes[id];
+        } else {
+          data.votes[id][currentUser] = 1;
+        }
         saveBoard();
         renderAllColumns();
+        filterCards();
       };
 
       badge.onmouseenter = () => details.classList.add('show');
@@ -388,30 +434,63 @@
       return card;
     }
 
+    // === FILTER & ZOEK ===
+    function getFilteredTasks(col) {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filter = document.getElementById('filter-my-votes').value;
+      return data.tasks[col].filter(id => {
+        const text = data.taskMap[id].toLowerCase();
+        const matchesSearch = text.includes(search);
+        if (!matchesSearch) return false;
+        if (filter === 'my' && currentUser) {
+          const vote = data.votes[id] || {};
+          return vote[currentUser] > 0;
+        }
+        return true;
+      });
+    }
+
+    function filterCards() {
+      renderAllColumns();
+    }
+
+    function updateColumnCounts() {
+      Object.keys(data.tasks).forEach(col => {
+        const visible = getFilteredTasks(col).length;
+        const totalVotes = data.tasks[col].reduce((sum, id) => {
+          const v = data.votes[id] || {};
+          return sum + Object.values(v).reduce((a,b) => a+b, 0);
+        }, 0);
+        document.getElementById(col + '-count').textContent = `${visible} taken • ${totalVotes} stemmen`;
+      });
+    }
+
     // === DRAG & DROP ===
     function allowDrop(e) { e.preventDefault(); }
     function drag(e) {
       const card = e.target.closest('.card');
-      e.dataTransfer.setData("text", card.querySelector('span').textContent);
+      if (!card) return;
+      e.dataTransfer.setData("text", card.dataset.taskId);
       card.classList.add('dragging');
     }
     function drop(e) {
       e.preventDefault();
-      const text = e.dataTransfer.getData("text");
-      const card = Array.from(document.querySelectorAll('.card'))
-        .find(c => c.querySelector('span').textContent === text);
+      const id = e.dataTransfer.getData("text");
+      const card = document.querySelector(`.card[data-task-id="${id}"]`);
       if (!card || !e.target.closest('.column')) return;
       const col = e.target.closest('.column');
-      col.querySelector('div[id$="-cards"]').appendChild(card);
+      const targetContainer = col.querySelector('div[id$="-cards"]');
+      targetContainer.appendChild(card);
       card.classList.remove('dragging');
       updateDataFromDOM();
       saveBoard();
+      filterCards();
     }
     function updateDataFromDOM() {
       document.querySelectorAll('.column').forEach(col => {
         const key = col.dataset.column;
-        data.tasks[key] = Array.from(col.querySelectorAll('.card span'))
-          .map(s => s.textContent);
+        data.tasks[key] = Array.from(col.querySelectorAll('.card'))
+          .map(c => c.dataset.taskId);
       });
     }
 
@@ -432,14 +511,15 @@
     // === EXPORT: CSV ===
     function exportToCSV() {
       updateDataFromDOM();
-      let csv = "Fase,Taak,Totaal,Stemmers\r\n";
+      let csv = "Fase,ID,Taak,Totaal,Stemmers\r\n";
       const names = { scoping: "Scoping", refinement: "Refinement", delivery: "Delivery" };
       Object.keys(data.tasks).forEach(col => {
-        data.tasks[col].forEach(text => {
-          const v = data.votes[text] || {};
+        data.tasks[col].forEach(id => {
+          const text = data.taskMap[id];
+          const v = data.votes[id] || {};
           const total = Object.values(v).reduce((a,b)=>a+b,0);
           const stemmers = Object.entries(v).map(([n,c])=>`${n}:${c}`).join(" | ");
-          csv += `"${names[col]}","${text.replace(/"/g,'""')}","${total}","${stemmers}"\r\n`;
+          csv += `"${names[col]}","${id}","${text.replace(/"/g,'""')}","${total}","${stemmers}"\r\n`;
         });
       });
       const a = document.createElement('a');
@@ -450,56 +530,82 @@
 
     // === EXPORT: PNG ===
     function exportToPNG() {
-      const controls = document.querySelector('.controls');
-      const userInput = document.querySelector('.user-input');
-      const currentUser = document.querySelector('.current-user');
-      controls.style.display = 'none';
-      userInput.style.display = 'none';
-      currentUser.style.display = 'none';
-
-      html2canvas(document.body, { scale: 2, backgroundColor: '#f4f6f9' }).then(canvas => {
-        controls.style.display = 'block';
-        userInput.style.display = 'block';
-        if (currentUser.textContent.includes('Je stemt als')) currentUser.style.display = 'block';
-
-        const link = document.createElement('a');
-        link.download = `planning-board-${new Date().toISOString().slice(0,10)}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+      hideUI(() => {
+        html2canvas(document.body, { scale: 2, backgroundColor: '#f4f6f9' }).then(canvas => {
+          const link = document.createElement('a');
+          link.download = `planning-${new Date().toISOString().slice(0,10)}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          showUI();
+        });
       });
     }
 
     // === EXPORT: PDF ===
     function exportToPDF() {
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('l', 'mm', 'a4');
-      const width = doc.internal.pageSize.getWidth();
+      hideUI(() => {
+        html2canvas(document.querySelector('.kanban'), { scale: 2 }).then(canvas => {
+          const doc = new jsPDF('l', 'mm', 'a4');
+          const width = doc.internal.pageSize.getWidth();
+          const height = doc.internal.pageSize.getHeight();
+          doc.setFontSize(16);
+          doc.text("Planning tot en met 30 april 2026", width / 2, 20, { align: 'center' });
+          doc.setFontSize(10);
+          doc.text(`Export: ${new Date().toLocaleDateString('nl-NL')}`, width / 2, 28, { align: 'center' });
 
-      doc.setFontSize(16);
-      doc.text("Planning tot en met 30 april 2026", width / 2, 20, { align: 'center' });
-      doc.setFontSize(10);
-      doc.text(`Export: ${new Date().toLocaleDateString('nl-NL')}`, width / 2, 28, { align: 'center' });
-
-      html2canvas(document.querySelector('.kanban'), { scale: 2 }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = width - 40;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        doc.addImage(imgData, 'PNG', 20, 35, imgWidth, imgHeight);
-        doc.save(`planning-${new Date().toISOString().slice(0,10)}.pdf`);
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = width - 40;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          if (imgHeight > height - 50) {
+            const ratio = (height - 50) / imgHeight;
+            doc.addImage(imgData, 'PNG', 20, 35, imgWidth * ratio, imgHeight * ratio);
+          } else {
+            doc.addImage(imgData, 'PNG', 20, 35, imgWidth, imgHeight);
+          }
+          doc.save(`planning-${new Date().toISOString().slice(0,10)}.pdf`);
+          showUI();
+        });
       });
+    }
+
+    function hideUI(callback) {
+      document.querySelector('.user-input').style.display = 'none';
+      document.querySelector('.current-user').style.display = 'none';
+      document.querySelector('.controls').style.display = 'none';
+      document.querySelector('.search-filter').style.display = 'none';
+      setTimeout(callback, 100);
+    }
+    function showUI() {
+      document.querySelector('.user-input').style.display = 'block';
+      if (currentUser) document.querySelector('.current-user').style.display = 'block';
+      document.querySelector('.controls').style.display = 'block';
+      document.querySelector('.search-filter').style.display = 'block';
     }
 
     // === OPSLAAN & RESET ===
     function saveBoard() {
-      localStorage.setItem('kanban-board-voting', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
+      localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
     }
     function resetBoard() {
-      if (confirm("Alles resetten?")) {
-        localStorage.removeItem('kanban-board-voting');
+      if (confirm("Weet je zeker dat je alles wilt resetten?")) {
+        localStorage.removeItem('kanban-board-v3');
         localStorage.removeItem('kanban-current-user');
         location.reload();
       }
     }
+
+    // === EXPORT MENU ===
+    function toggleExportMenu() {
+      const menu = document.getElementById('export-menu');
+      menu.classList.toggle('show');
+    }
+    document.addEventListener('click', function(e) {
+      const wrapper = document.querySelector('.export-wrapper');
+      if (!wrapper.contains(e.target)) {
+        document.getElementById('export-menu').classList.remove('show');
+      }
+    });
 
     // === EVENT LISTENERS ===
     document.querySelectorAll('.column').forEach(col => {
@@ -508,7 +614,7 @@
     });
 
     // === START ===
-    window.onload = loadBoard;
+    window.onload = init;
   </script>
 </body>
 </html>
