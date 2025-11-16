@@ -1,1 +1,398 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planning tot en met 30 april 2026</title>
+  <!-- Bibliotheken -->
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 16px;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin: 0 0 8px;
+      font-size: 1.6em;
+    }
+    .subtitle {
+      text-align: center;
+      color: #7f8c8d;
+      font-size: 0.9em;
+      margin-bottom: 14px;
+    }
+    .user-input, .controls, .search-filter {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    input, button, select {
+      font: inherit;
+      border-radius: 6px;
+    }
+    input[type="text"], select {
+      padding: 9px 12px;
+      border: 1px solid #ddd;
+      margin: 0 6px;
+      min-width: 180px;
+    }
+    .btn, .export-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.92em;
+      transition: all 0.2s;
+      margin: 0 6px;
+    }
+    .btn:hover, .export-btn:hover { background: #2980b9; transform: translateY(-1px); }
+    .btn.sort { background: #9b59b6; }
+    .btn.sort:hover { background: #8e44ad; }
+    .btn.reset { background: #e74c3c; }
+    .btn.reset:hover { background: #c0392b; }
+    .export-btn { background: #27ae60; }
+    .export-btn:hover { background: #229954; }
 
+    .export-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .export-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      min-width: 160px;
+      margin-top: 6px;
+    }
+    .export-menu.show { display: block; }
+    .export-menu button {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .export-menu button:hover { background: #f0f0f0; }
+
+    .current-user {
+      text-align: center;
+      font-weight: bold;
+      color: #2c3e50;
+      margin: 8px 0;
+      font-size: 0.95em;
+    }
+
+    /* === KANBAN - GECENTREERD === */
+    .kanban {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding: 12px 0;
+      justify-content: center; /* ALTIJD CENTREREN */
+      align-items: flex-start;
+      max-width: 100%;
+      margin: 0 auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: thin;
+    }
+    .kanban::-webkit-scrollbar {
+      height: 8px;
+    }
+    .kanban::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    .kanban::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
+    }
+
+    .column {
+      background: #e2e8f0;
+      border-radius: 12px;
+      width: 340px;
+      min-width: 340px;
+      padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      flex: 0 0 auto;
+      scroll-snap-align: center;
+    }
+    .column h2 {
+      margin: 0 0 12px;
+      padding-bottom: 6px;
+      border-bottom: 3px solid;
+      font-size: 1.15em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .column h2 span {
+      font-size: 0.78em;
+      font-weight: normal;
+      color: #555;
+      background: rgba(255,255,255,0.7);
+      padding: 3px 7px;
+      border-radius: 4px;
+    }
+    .scoping h2 { border-color: #3498db; color: #2980b9; }
+    .refinement h2 { border-color: #f39c12; color: #e67e22; }
+    .delivery h2 { border-color: #27ae60; color: #229954; }
+
+    .card {
+      background: white;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      font-size: 0.95em;
+      line-height: 1.4;
+      cursor: grab;
+      transition: all 0.2s;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
+    .card.dragging { opacity: 0.6; transform: rotate(4deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
+
+    .vote-badge {
+      background: #95a5a6;
+      color: white;
+      font-weight: bold;
+      font-size: 0.8em;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .vote-badge:hover { transform: scale(1.12); }
+    .vote-badge.voted { background: #27ae60; }
+    .vote-badge.my-vote { background: #3498db; box-shadow: 0 0 0 2px white, 0 0 0 4px #3498db; }
+
+    .vote-details {
+      position: absolute;
+      top: 34px;
+      right: -10px;
+      background: #2c3e50;
+      color: white;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.78em;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+      display: none;
+      pointer-events: none;
+    }
+    .vote-details.show { display: block; }
+    .vote-details::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: 12px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid #2c3e50;
+    }
+
+    .search-filter input {
+      width: 260px;
+      max-width: 100%;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 36px;
+      color: #7f8c8d;
+      font-size: 0.88em;
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 1100px) {
+      .kanban { justify-content: flex-start; padding: 0 16px; }
+      .column { min-width: 320px; width: 320px; }
+    }
+    @media (max-width: 768px) {
+      body { padding: 12px; }
+      .kanban { gap: 16px; padding: 0 8px; }
+      .column { min-width: 300px; width: 300px; padding: 12px; }
+      .btn, .export-btn { padding: 9px 14px; font-size: 0.88em; margin: 4px; display: block; width: 100%; max-width: 220px; margin: 6px auto; }
+      input[type="text"], select { width: 100%; margin: 8px 0; display: block; }
+      .controls { display: flex; flex-direction: column; align-items: center; }
+      .export-wrapper { width: 100%; max-width: 220px; }
+      .export-menu { left: 0; transform: none; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .column { min-width: 280px; width: 280px; }
+      h1 { font-size: 1.4em; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Planning tot en met 30 april 2026</h1>
+  <p class="subtitle">Stem • Sleep • Sorteer • Zoek • Exporteer</p>
+
+  <!-- NAAM INVOEREN -->
+  <div class="user-input">
+    <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)" />
+    <button class="btn" onclick="setUser()">Stemmen instellen</button>
+  </div>
+  <div class="current-user" id="current-user-display" style="display:none;">
+    Je stemt als: <strong id="user-name-display"></strong>
+  </div>
+
+  <!-- ZOEK + FILTER -->
+  <div class="search-filter">
+    <input type="text" id="search-input" placeholder="Zoeken in taken..." onkeyup="filterCards()" />
+    <select id="filter-my-votes" onchange="filterCards()">
+      <option value="">Alle taken</option>
+      <option value="my">Alleen mijn stemmen</option>
+    </select>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn sort" onclick="sortByVotes()">Sorteren op stemmen</button>
+    <div class="export-wrapper">
+      <button class="export-btn" onclick="toggleExportMenu()">Exporteer</button>
+      <div class="export-menu" id="export-menu">
+        <button onclick="exportToCSV()">CSV (Excel)</button>
+        <button onclick="exportToPNG()">PNG (Afbeelding)</button>
+        <button onclick="exportToPDF()">PDF (Document)</button>
+      </div>
+    </div>
+    <button class="btn reset" onclick="resetBoard()">Reset</button>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="kanban" id="kanban">
+    <div class="column scoping" data-column="scoping">
+      <h2>1. Scoping (To Do) <span id="scoping-count">0 taken</span></h2>
+      <div id="scoping-cards"></div>
+    </div>
+    <div class="column refinement" data-column="refinement">
+      <h2>2. Refinement (In Progress) <span id="refinement-count">0 taken</span></h2>
+      <div id="refinement-cards"></div>
+    </div>
+    <div class="column delivery" data-column="delivery">
+      <h2>3. Delivery (Done) <span id="delivery-count">0 taken</span></h2>
+      <div id="delivery-cards"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Gemaakt met liefde door BasAI • Werkt offline • Gecentreerd!
+  </div>
+
+  <script>
+    // === DATA MET UNIEKE ID's ===
+    const originalTasks = [
+      "Koppeling datawarehouse Agentschap",
+      "Het verwijderen van het indicatieve rekeningcourant rentetarief",
+      "CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)",
+      "Solution for running the DBUs without a change to the deployment pipeline",
+      "Archivering voor database reductie",
+      "Aanpassingen performance datahub",
+      "Afronding anonimisering",
+      "CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving",
+      "Toevoegen Rekening-mutatiefournier",
+      "Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet",
+      "DP onderscheid wijzigen bankrekening flow - intradaglimiet",
+      "Einddatum verplicht stellen bij wijzigen RC-krediet",
+      "Opslaan .msg in zaken",
+      "Aanpassen knop \"Indicatieve marktwaarde berekenen\"",
+      "Adjustments text and layout pdf-rapport Totaaloverzicht Deelnemer"
+    ].map((text, i) => ({ id: `task-${i+1}`, text }));
+
+    const originalData = {
+      scoping: originalTasks.slice(0, 5).map(t => t.id),
+      refinement: originalTasks.slice(5, 12).map(t => t.id),
+      delivery: originalTasks.slice(12).map(t => t.id)
+    };
+
+    // === GLOBALE VARIABELEN ===
+    const data = { tasks: {}, votes: {}, taskMap: {} };
+    let currentUser = null;
+
+    // === INIT ===
+    function init() {
+      originalTasks.forEach(t => data.taskMap[t.id] = t.text);
+      loadBoard();
+    }
+
+    // === GEBRUIKER ===
+    function setUser() {
+      const name = document.getElementById('user-name').value.trim();
+      if (!name) return alert("Voer een naam in!");
+      currentUser = name;
+      document.getElementById('current-user-display').style.display = 'block';
+      document.getElementById('user-name-display').textContent = name;
+      document.getElementById('user-name').value = '';
+      saveUser();
+      renderAllColumns();
+      filterCards();
+    }
+
+    function saveUser() {
+      localStorage.setItem('kanban-current-user', currentUser);
+    }
+
+    // === LAAD + RENDER ===
+    function loadBoard() {
+      const saved = localStorage.getItem('kanban-board-v3');
+      if (saved) {
+        const loaded = JSON.parse(saved);
+        data.tasks = loaded.tasks || JSON.parse(JSON.stringify(originalData));
+        data.votes = loaded.votes || {};
+      } else {
+        data.tasks = JSON.parse(JSON.stringify(originalData));
+        data.votes = {};
+      }
+      currentUser = localStorage.getItem('kanban-current-user');
+      if (currentUser) {
+        document.getElementById('current-user-display').style.display = 'block';
+        document.getElementById('user-name-display').textContent = currentUser;
+      }
+      renderAllColumns();
+      updateColumnCounts();
+      filterCards();
+    }
+
+    function renderAllColumns() {
+      Object.keys(data.tasks).forEach(col => {
+        const container = document.getElementById(col + '-cards');
+        container.innerHTML = '';
+        const visibleTasks = getFilteredTasks(col);
+        visibleTasks.forEach(id => {
+          const text = data.taskMap[id];
+         
