@@ -8,27 +8,17 @@
   <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    :root {
-      --primary: #3498db;
-      --success: #27ae60;
-      --warning: #f39c12;
-      --danger: #e74c3c;
-      --purple: #9b59b6;
-      --dark: #2c3e50;
-      --light: #ecf0f1;
-      --bg: #f4f6f9;
-    }
     * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--bg);
+      background: #f4f6f9;
       margin: 0;
       padding: 15px;
       line-height: 1.5;
     }
     h1 {
       text-align: center;
-      color: var(--dark);
+      color: #2c3e50;
       margin: 0 0 8px;
       font-size: 1.6em;
     }
@@ -53,7 +43,7 @@
       min-width: 180px;
     }
     .btn, .export-btn {
-      background: var(--primary);
+      background: #3498db;
       color: white;
       border: none;
       padding: 9px 16px;
@@ -63,20 +53,25 @@
       transition: all 0.2s;
       margin: 0 6px;
     }
-    .btn:hover, .export-btn:hover { filter: brightness(0.9); transform: translateY(-1px); }
-    .btn.sort { background: var(--purple); }
-    .btn.reset { background: var(--danger); }
-    .export-btn { background: var(--success); }
+    .btn:hover, .export-btn:hover { background: #2980b9; transform: translateY(-1px); }
+    .btn.sort { background: #9b59b6; }
+    .btn.sort:hover { background: #8e44ad; }
+    .btn.reset { background: #e74c3c; }
+    .btn.reset:hover { background: #c0392b; }
+    .export-btn { background: #27ae60; }
+    .export-btn:hover { background: #229954; }
 
     .export-wrapper {
       position: relative;
       display: inline-block;
+      vertical-align: middle;
     }
     .export-menu {
       display: none;
       position: absolute;
       top: 100%;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
       background: white;
       border: 1px solid #ddd;
       border-radius: 6px;
@@ -103,26 +98,37 @@
     .current-user {
       text-align: center;
       font-weight: bold;
-      color: var(--dark);
+      color: #2c3e50;
       margin: 8px 0;
       font-size: 0.95em;
     }
 
     .kanban {
       display: flex;
-      gap: 16px;
+      gap: 20px;
       overflow-x: auto;
       padding: 10px 0;
-      justify-content: flex-start;
+      justify-content: center; /* Hersteld: centrale uitlijning */
       max-width: 100%;
       margin: 0 auto;
+      scrollbar-width: thin; /* Voor Firefox */
+    }
+    .kanban::-webkit-scrollbar {
+      height: 8px;
+    }
+    .kanban::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    .kanban::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 4px;
     }
     .column {
       background: #e2e8f0;
       border-radius: 12px;
-      width: 320px;
-      min-width: 320px;
-      padding: 14px;
+      width: 340px;
+      min-width: 340px;
+      padding: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
       flex: 0 0 auto;
     }
@@ -145,17 +151,17 @@
       padding: 2px 6px;
       border-radius: 4px;
     }
-    .scoping h2 { border-color: var(--primary); color: #2980b9; }
-    .refinement h2 { border-color: var(--warning); color: #e67e22; }
-    .delivery h2 { border-color: var(--success); color: #229954; }
+    .scoping h2 { border-color: #3498db; color: #2980b9; }
+    .refinement h2 { border-color: #f39c12; color: #e67e22; }
+    .delivery h2 { border-color: #27ae60; color: #229954; }
 
     .card {
       background: white;
-      padding: 11px;
-      margin-bottom: 9px;
+      padding: 12px;
+      margin-bottom: 10px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      font-size: 0.92em;
+      font-size: 0.95em;
       line-height: 1.4;
       cursor: grab;
       transition: all 0.2s;
@@ -184,14 +190,14 @@
       position: relative;
     }
     .vote-badge:hover { transform: scale(1.12); }
-    .vote-badge.voted { background: var(--success); }
-    .vote-badge.my-vote { background: var(--primary); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--primary); }
+    .vote-badge.voted { background: #27ae60; }
+    .vote-badge.my-vote { background: #3498db; box-shadow: 0 0 0 2px white, 0 0 0 4px #3498db; }
 
     .vote-details {
       position: absolute;
       top: 34px;
       right: -10px;
-      background: var(--dark);
+      background: #2c3e50;
       color: white;
       padding: 8px;
       border-radius: 6px;
@@ -212,7 +218,7 @@
       height: 0;
       border-left: 6px solid transparent;
       border-right: 6px solid transparent;
-      border-bottom: 6px solid var(--dark);
+      border-bottom: 6px solid #2c3e50;
     }
 
     .search-filter input {
@@ -227,11 +233,21 @@
       font-size: 0.88em;
     }
 
+    @media (max-width: 1200px) {
+      .kanban { justify-content: flex-start; padding: 0 10px; } /* Scroll from left on smaller screens */
+    }
     @media (max-width: 768px) {
-      .kanban { gap: 12px; padding: 8px 0; }
+      body { padding: 10px; }
+      .kanban { gap: 15px; }
       .column { width: 300px; min-width: 300px; padding: 12px; }
-      .btn, .export-btn { padding: 8px 12px; font-size: 0.88em; margin: 4px; }
-      input[type="text"], select { width: 100%; margin: 6px 0; }
+      .btn, .export-btn { padding: 8px 12px; font-size: 0.88em; margin: 4px; display: block; width: auto; }
+      input[type="text"], select { width: 100%; margin: 6px 0; display: block; }
+      .controls, .search-filter { display: flex; flex-direction: column; align-items: center; }
+      .export-menu { left: 0; transform: none; }
+    }
+    @media (max-width: 480px) {
+      .column { width: 280px; min-width: 280px; }
+      h1 { font-size: 1.4em; }
     }
   </style>
 </head>
@@ -288,7 +304,7 @@
   </div>
 
   <div class="footer">
-    Gemaakt met liefde door BasAI • Werkt offline • Versie 2.0
+    Gemaakt met liefde door BasAI • Werkt offline • Uitlijning gefixt!
   </div>
 
   <script>
@@ -313,8 +329,8 @@
 
     const originalData = {
       scoping: originalTasks.slice(0, 5).map(t => t.id),
-      refinement: originalTasks.slice(5, 15).map(t => t.id),
-      delivery: originalTasks.slice(15).map(t => t.id)
+      refinement: originalTasks.slice(5, 12).map(t => t.id), // Aangepast voor betere verdeling
+      delivery: originalTasks.slice(12).map(t => t.id)
     };
 
     // === GLOBALE VARIABELEN ===
@@ -323,9 +339,7 @@
 
     // === INIT ===
     function init() {
-      // Maak taskMap
       originalTasks.forEach(t => data.taskMap[t.id] = t.text);
-      // Laad of reset
       loadBoard();
     }
 
@@ -414,9 +428,9 @@
         e.stopPropagation();
         if (!currentUser) return alert("Voer eerst je naam in!");
         if (!data.votes[id]) data.votes[id] = {};
-        if (data.votes[id][currentUser]) {
-          data.votes[id][currentUser]--;
-          if (data.votes[id][currentUser] <= 0) delete data.votes[id][currentUser];
+        if (data.votes[id][currentUser] && data.votes[id][currentUser] > 0) {
+          data.votes[id][currentUser] = 0;
+          delete data.votes[id][currentUser];
           if (Object.keys(data.votes[id]).length === 0) delete data.votes[id];
         } else {
           data.votes[id][currentUser] = 1;
@@ -440,7 +454,7 @@
       const filter = document.getElementById('filter-my-votes').value;
       return data.tasks[col].filter(id => {
         const text = data.taskMap[id].toLowerCase();
-        const matchesSearch = text.includes(search);
+        const matchesSearch = !search || text.includes(search);
         if (!matchesSearch) return false;
         if (filter === 'my' && currentUser) {
           const vote = data.votes[id] || {};
@@ -476,7 +490,7 @@
     function drop(e) {
       e.preventDefault();
       const id = e.dataTransfer.getData("text");
-      const card = document.querySelector(`.card[data-task-id="${id}"]`);
+      const card = document.querySelector(`[data-task-id="${id}"]`);
       if (!card || !e.target.closest('.column')) return;
       const col = e.target.closest('.column');
       const targetContainer = col.querySelector('div[id$="-cards"]');
@@ -557,9 +571,9 @@
           const imgData = canvas.toDataURL('image/png');
           const imgWidth = width - 40;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
-          if (imgHeight > height - 50) {
-            const ratio = (height - 50) / imgHeight;
-            doc.addImage(imgData, 'PNG', 20, 35, imgWidth * ratio, imgHeight * ratio);
+          const pageHeight = height - 50;
+          if (imgHeight > pageHeight) {
+            doc.addImage(imgData, 'PNG', 20, 35, imgWidth, pageHeight);
           } else {
             doc.addImage(imgData, 'PNG', 20, 35, imgWidth, imgHeight);
           }
@@ -570,17 +584,20 @@
     }
 
     function hideUI(callback) {
-      document.querySelector('.user-input').style.display = 'none';
-      document.querySelector('.current-user').style.display = 'none';
-      document.querySelector('.controls').style.display = 'none';
-      document.querySelector('.search-filter').style.display = 'none';
+      const elements = ['.user-input', '.current-user', '.controls', '.search-filter'];
+      elements.forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = 'none';
+      });
       setTimeout(callback, 100);
     }
     function showUI() {
-      document.querySelector('.user-input').style.display = 'block';
+      const elements = ['.user-input', '.controls', '.search-filter'];
+      elements.forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = 'block';
+      });
       if (currentUser) document.querySelector('.current-user').style.display = 'block';
-      document.querySelector('.controls').style.display = 'block';
-      document.querySelector('.search-filter').style.display = 'block';
     }
 
     // === OPSLAAN & RESET ===
@@ -608,9 +625,11 @@
     });
 
     // === EVENT LISTENERS ===
-    document.querySelectorAll('.column').forEach(col => {
-      col.ondrop = drop;
-      col.ondragover = allowDrop;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.column').forEach(col => {
+        col.ondrop = drop;
+        col.ondragover = allowDrop;
+      });
     });
 
     // === START ===
