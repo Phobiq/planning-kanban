@@ -88,10 +88,10 @@
   justify-content: space-between;
   align-items: center;
   position: relative;
-  overflow: visible !important; /* CRUCIAAL */
+  overflow: visible !important;
 }
-    .card:hover { transform: translateY(-1px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
-    .card.dragging { opacity: 0.6; transform: rotate(4deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
+.card:hover { transform: translateY(-1px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
+.card.dragging { opacity: 0.6; transform: rotate(4deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
 
     .vote-badge {
       background: #95a5a6; color: white; font-weight: bold; font-size: 0.8em; width: 28px; height: 28px;
@@ -135,12 +135,6 @@
   border-bottom: 7px solid transparent;
   border-right: 7px solid #2c3e50; /* Pijl naar links */
 }
-
-  /* Zorg dat kaartje geen overflow:hidden heeft */
-  .card {
-    position: relative;
-    overflow: visible !important;
-  }
 
     .search-filter input { width: 260px; max-width: 100%; }
     .footer { text-align: center; margin-top: 36px; color: #7f8c8d; font-size: 0.88em; }
@@ -583,6 +577,7 @@ badge.onmouseleave = () => {
   </script>
 </body>
 </html>
+
 
 
 
