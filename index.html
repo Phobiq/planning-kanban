@@ -92,36 +92,38 @@
     .vote-badge.my-vote { background: #3498db; box-shadow: 0 0 0 2px white, 0 0 0 4px #3498db; }
 
 .vote-details {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2c3e50;
-    color: white;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 0.82em;
-    white-space: normal;
-    max-width: 220px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-    z-index: 9999;
-    display: none;
-    pointer-events: none;
-    text-align: center;
-    line-height: 1.4;
-  }
-  .vote-details.show { display: block; }
-  .vote-details::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0; height: 0;
-    border-left: 7px solid transparent;
-    border-right: 7px solid transparent;
-    border-bottom: 7px solid #2c3e50;
-  }
+  position: absolute;
+  left: 100%;           /* Rechts van badge */
+  top: 50%;             /* Verticaal gecentreerd */
+  transform: translateY(-50%);
+  margin-left: 12px;    /* Afstand van kaartje */
+  background: #2c3e50;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.82em;
+  white-space: normal;
+  max-width: 240px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  z-index: 9999;
+  display: none;
+  pointer-events: none;
+  line-height: 1.4;
+  text-align: left;
+}
+.vote-details.show { display: block; }
+
+.vote-details::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -7px;                    /* Pijl links */
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 7px solid #2c3e50; /* Pijl naar links */
+}
 
   /* Zorg dat kaartje geen overflow:hidden heeft */
   .card {
@@ -391,7 +393,7 @@
 
 badge.onmouseenter = () => {
   details.classList.add('show');
-  // Force reflow voor z-index
+  // Force layout recalc
   void details.offsetWidth;
 };
 badge.onmouseleave = () => {
@@ -570,4 +572,5 @@ badge.onmouseleave = () => {
   </script>
 </body>
 </html>
+
 
