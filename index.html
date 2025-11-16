@@ -57,7 +57,7 @@
     .kanban::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
 
     .column {
-      background: #e2e8f0; border-radius: 12px; width: 340px; min-width: 340px; padding: 15px;
+      background: #e2e8f0; border-radius: 12px; width: 500px; min-width: 500px; padding: 15px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05); flex: 0 0 auto; scroll-snap-align: center;
     }
     .column h2 {
@@ -142,12 +142,12 @@
 
     @media (max-width: 1100px) {
       .kanban { justify-content: flex-start; padding: 0 16px; }
-      .column { min-width: 320px; width: 320px; }
+      .column { min-width: 480px; width: 480px; }
     }
-    @media (max-width: 768px) {
+    @media (max-width: 1100px) {
       body { padding: 12px; }
-      .kanban { gap: 16px; padding: 0 8px; }
-      .column { min-width: 300px; width: 300px; padding: 12px; }
+      .kanban { gap: 16px; padding: 0 16px; }
+      .column { min-width: 320px; width: 320px; padding: 12px; }
       .btn, .export-btn { padding: 9px 14px; font-size: 0.88em; margin: 4px; display: block; width: 100%; max-width: 220px; margin: 6px auto; }
       input[type="text"], select { width: 100%; margin: 8px 0; display: block; }
       .controls { display: flex; flex-direction: column; align-items: center; }
@@ -162,12 +162,17 @@
 </head>
 <body>
   <h1>Planning tot en met 30 april 2026</h1>
-  <p class="subtitle">Stem • Sleep • Sorteer • Zoek • Exporteer</p>
+  <p class="subtitle">Stem • Sorteer • Zoek • Exporteer</p>
 
-  <div class="user-input">
-    <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)" />
-    <button class="btn" onclick="setUser()">Stemmen instellen</button>
-  </div>
+<div class="user-input">
+  <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)" />
+  <button class="btn" onclick="setUser()">Stemmen instellen</button>
+  <button class="btn sort" onclick="sortByVotes()" style="margin-left: 8px;">Sorteren op stemmen</button>
+  <button class="btn" onclick="loadVotesFromSheets()" style="background:#9b59b6; margin-left: 8px;">
+    Stemmen laden
+  </button>
+  <div id="sync-status" style="font-size:0.8em; color:#27ae60; margin:4px 0; text-align:center;"></div>
+</div>
   <div class="current-user" id="current-user-display" style="display:none;">
     Je stemt als: <strong id="user-name-display"></strong>
     <span class="limit" id="vote-limit"></span>
@@ -181,22 +186,17 @@
     </select>
   </div>
 
- <div class="controls">
-  <button class="btn sort" onclick="sortByVotes()">Sorteren op stemmen</button>
-  <button class="btn" onclick="loadVotesFromSheets()" style="background:#9b59b6; margin:0 6px;">
-    Stemmen laden
-  </button>
-  <div id="sync-status" style="font-size:0.8em; color:#27ae60; margin:4px 0; text-align:center;"></div>
-    <div class="export-wrapper">
-      <button class="export-btn" onclick="toggleExportMenu()">Exporteer</button>
-      <div class="export-menu" id="export-menu">
-        <button onclick="exportToCSV()">CSV (Excel)</button>
-        <button onclick="exportToPNG()">PNG (Afbeelding)</button>
-        <button onclick="exportToPDF()">PDF (Document)</button>
-      </div>
+<div class="controls">
+  <div class="export-wrapper">
+    <button class="export-btn" onclick="toggleExportMenu()">Exporteer</button>
+    <div class="export-menu" id="export-menu">
+      <button onclick="exportToCSV()">CSV (Excel)</button>
+      <button onclick="exportToPNG()">PNG (Afbeelding)</button>
+      <button onclick="exportToPDF()">PDF (Document)</button>
     </div>
-    <button class="btn reset" onclick="resetBoard()">Reset</button>
   </div>
+  <button class="btn reset" onclick="resetBoard()">Reset</button>
+</div>
 
   <div id="loading" class="loading" style="display: block;">Laden van data uit Google Sheet...</div>
 
@@ -660,6 +660,7 @@ async function loadVotesFromSheets() {
   </script>
 </body>
 </html>
+
 
 
 
