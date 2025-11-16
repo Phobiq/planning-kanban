@@ -271,13 +271,70 @@
       }
     }
 
-    async function init() {
-      await fetchCSV();
-      loadBoard();
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('kanban').style.display = 'flex';
-      isLoaded = true;
+    // === AUTOMATISCHE SYNC BIJ OPSTARTEN ===
+async function autoSyncVotes() {
+  const statusEl = document.getElementById('sync-status');
+  if (!statusEl) return;
+
+  statusEl.textContent = 'Sync met Google Sheets...';
+  statusEl.style.color = '#f39c12';
+
+  const STEMMEN_GID = '141552524'; // VERVANG DOOR JOUW "Stemmen" TABBLAD ID
+  const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${STEMMEN_GID}`;
+
+  try {
+    const resp = await fetch(sheetUrl);
+    if (!resp.ok) throw new Error('Tabblad niet gevonden');
+
+    const csv = await resp.text();
+    const rows = csv.split('\n').slice(1);
+
+    const newVotes = {};
+    let hasData = false;
+
+    rows.forEach(row => {
+      const cols = row.split(',').map(s => s.replace(/"/g, '').trim());
+      if (cols.length < 6) return;
+      const [time, user, taskId, taskText, countStr, fase] = cols;
+      const count = parseInt(countStr);
+      if (taskId && !isNaN(count) && count > 0) {
+        if (!newVotes[taskId]) newVotes[taskId] = {};
+        newVotes[taskId][user] = count;
+        hasData = true;
+      }
+    });
+
+    if (hasData) {
+      data.votes = newVotes;
+      localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
+      statusEl.textContent = 'Sync geslaagd!';
+      statusEl.style.color = '#27ae60';
+    } else {
+      statusEl.textContent = 'Geen stemmen gevonden';
+      statusEl.style.color = '#95a5a6';
     }
+
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+
+  } catch (error) {
+    console.warn('Auto-sync mislukt (geen internet?):', error);
+    statusEl.textContent = 'Sync mislukt';
+    statusEl.style.color = '#e74c3c';
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+  }
+}
+    
+async function init() {
+  await fetchCSV();
+  loadBoard(); // Laadt lokale data (taken + eventuele oude stemmen)
+  await autoSyncVotes(); // OVERSCHRIJFT stemmen met Google Sheets
+  renderAllColumns();
+  updateColumnCounts();
+  filterCards();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('kanban').style.display = 'flex';
+  isLoaded = true;
+}
 
     function setUser() {
       const name = document.getElementById('user-name').value.trim();
@@ -660,6 +717,7 @@ async function loadVotesFromSheets() {
   </script>
 </body>
 </html>
+
 
 
 
