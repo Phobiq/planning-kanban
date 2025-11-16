@@ -610,7 +610,7 @@ async function saveBoard() {
   localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
 
   // 2. Verstuur naar Google Sheets
-  const webAppUrl = 'https://script.google.com/macros/s/AKfycbzpIQqbRx5UvBAuhJG4CuUZj1gnPQMdKiNRLLBFU6itpKPYuoTmVU46RuEYKr97JPO0/exec';
+  const webAppUrl = 'https://script.google.com/macros/s/AKfycbxp96H0zhBvBLG0GuIDt1ThXrBGoFTyIQFJbZw3Q3JbKVjUQ08CddNxyeQSV_izTcgz/exec';
   const payload = {
     taskMap: data.taskMap,
     tasks: data.tasks,
@@ -713,6 +713,7 @@ async function loadVotesFromSheets() {
   </script>
 </body>
 </html>
+
 
 
 
