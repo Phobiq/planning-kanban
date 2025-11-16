@@ -545,10 +545,10 @@ function exportToPDF() {
     }
 
 async function saveBoard() {
-  // 1. Lokaal opslaan
+  // 1. Lokaal opslaan (fallback)
   localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
 
-  // 2. Verstuur naar Google Sheets
+  // 2. Verstuur naar Google Sheets (WERKT MET NO-CORS)
   const webAppUrl = 'https://script.google.com/macros/s/AKfycby5M4q4da15-T6iYhWQR_4S9QiPo1nfXDn-kGaml9ofA3n0DVA9GAs5bBpksQAp7Fdi/exec';
 
   const payload = {
@@ -558,23 +558,21 @@ async function saveBoard() {
   };
 
   try {
-    const response = await fetch(webAppUrl, {
+    await fetch(webAppUrl, {
       method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'application/json' }, // ← BETER
+      mode: 'no-cors',           // ← CRUCIAAL
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'text/plain'  // ← Google verwacht dit
+      },
       body: JSON.stringify(payload)
     });
-
-    const result = await response.json(); // ← Nu leesbaar!
-    if (result.status === 'success') {
-      console.log('Stemmen opgeslagen in Google Sheets');
-    } else {
-      console.warn('Sheets fout:', result.message);
-    }
+    console.log('Stemmen verzonden naar Google Sheets (no-cors)');
   } catch (error) {
-    console.warn('Kon niet opslaan in Sheets (geen internet?):', error);
+    console.warn('Kon niet verzenden (geen internet?):', error);
   }
-}    
+}
+    
     function resetBoard() {
       if (confirm("Weet je zeker dat je alles wilt resetten?")) {
         localStorage.removeItem('kanban-board-v3');
@@ -604,6 +602,7 @@ async function saveBoard() {
   </script>
 </body>
 </html>
+
 
 
 
