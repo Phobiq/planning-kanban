@@ -549,7 +549,7 @@ async function saveBoard() {
   localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
 
   // 2. Verstuur naar Google Sheets (WERKT MET NO-CORS)
-  const webAppUrl = 'https://script.google.com/macros/s/AKfycby5M4q4da15-T6iYhWQR_4S9QiPo1nfXDn-kGaml9ofA3n0DVA9GAs5bBpksQAp7Fdi/exec';
+  const webAppUrl = 'https://script.google.com/macros/s/AKfycbwIgujMusgpA_L6vcziM4ez0mg_j56beTCrvXA6w0d0495jGpfkzX_9B7oXDPquNl3O/exec';
 
   const payload = {
     taskMap: data.taskMap,
@@ -602,6 +602,7 @@ async function saveBoard() {
   </script>
 </body>
 </html>
+
 
 
 
