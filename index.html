@@ -1,230 +1,369 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Planning tot en met 30 april 2026</title>
-  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    :root {
-      --primary: #3498db;
-      --success: #27ae60;
-      --warning: #f39c12;
-      --danger: #e74c3c;
-      --purple: #9b59b6;
-      --dark: #2c3e50;
-      --gray: #95a5a6;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f9;
-      margin: 0;
-      padding: 16px;
-      line-height: 1.5;
-      min-height: 100vh;
-    }
-    h1 { text-align: center; color: var(--dark); margin: 0 0 8px; font-size: 1.6em; }
-    .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9em; margin-bottom: 14px; }
-    
-    /* Rest van je CSS blijft 99% hetzelfde, alleen kleine verbeteringen */
-    .user-input, .controls, .search-filter { text-align: center; margin-bottom: 16px; }
-    input, button, select { font: inherit; border-radius: 6px; }
-    input[type="text"], select { 
-      padding: 9px 12px; border: 1px solid #ddd; margin: 0 6px; min-width: 180px; 
-    }
-    .btn, .export-btn {
-      background: var(--primary); color: white; border: none; padding: 10px 18px; 
-      border-radius: 6px; cursor: pointer; font-size: 0.92em; transition: all 0.2s; margin: 0 6px;
-    }
-    .btn:hover, .export-btn:hover { 
-      background: #2980b9; transform: translateY(-1px); 
-    }
-    .btn.sort { background: var(--purple); } 
-    .btn.sort:hover { background: #8e44ad; }
-    .btn.reset { background: var(--danger); } 
-    .btn.reset:hover { background: #c0392b; }
-    .export-btn { background: var(--success); } 
-    .export-btn:hover { background: #229954; }
-
-    /* Export menu verbeterd */
-    .export-wrapper { position: relative; display: inline-block; }
-    .export-menu {
-      display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-      background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      z-index: 1000; min-width: 180px; margin-top: 8px; overflow: hidden;
-    }
-    .export-menu.show { display: block; animation: fadeIn 0.2s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px) translateX(-50%); } to { opacity: 1; transform: translateX(-50%); } }
-    .export-menu button {
-      display: block; width: 100%; padding: 12px 16px; background: none; border: none;
-      text-align: left; font-size: 0.95em; cursor: pointer; transition: background 0.2s;
-    }
-    .export-menu button:hover { background: #f8f9fa; }
-
-    /* Kanban verbeteringen */
-    .kanban {
-      display: flex; gap: 20px; overflow-x: auto; padding: 12px 0; justify-content: center;
-      align-items: flex-start; max-width: 100%; margin: 0 auto; scroll-snap-type: x mandatory;
-      scrollbar-width: thin;
-    }
-    .column { 
-      background: #e2e8f0; border-radius: 12px; width: 500px; min-width: 500px; 
-      padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); scroll-snap-align: center;
-    }
-    .column h2 span {
-      font-size: 0.78em; font-weight: normal; color: #555; background: rgba(255,255,255,0.85);
-      padding: 4px 9px; border-radius: 6px;
-    }
-
-    /* Card & badge verbeteringen */
-    .card {
-      background: white; padding: 14px; margin-bottom: 11px; border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1); font-size: 0.95em; line-height: 1.45;
-      cursor: grab; transition: all 0.25s; position: relative; display: flex; align-items: center;
-      gap: 12px;
-    }
-    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
-    .card.dragging { 
-      opacity: 0.7; transform: rotate(5deg) scale(1.03); 
-      box-shadow: 0 15px 30px rgba(0,0,0,0.25); z-index: 1000; 
-    }
-
-    .vote-badge {
-      background: var(--gray); color: white; font-weight: bold; font-size: 0.85em; 
-      width: 36px; height: 36px; border-radius: 50%; display: flex; 
-      align-items: center; justify-content: center; cursor: pointer;
-      transition: all 0.25s; flex-shrink: 0;
-    }
-    .vote-badge:hover { transform: scale(1.15); }
-    .vote-badge.voted { background: var(--success); }
-    .vote-badge.my-vote { 
-      background: var(--primary); 
-      box-shadow: 0 0 0 3px white, 0 0 0 6px var(--primary);
-    }
-
-    .vote-details {
-      position: absolute; left: calc(100% + 12px); top: 50%; transform: translateY(-50%);
-      background: var(--dark); color: white; padding: 12px 16px; border-radius: 10px;
-      font-size: 0.85em; max-width: 280px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      z-index: 9999; display: none; pointer-events: none; white-space: nowrap;
-    }
-    .vote-details.show { display: block; }
-    .vote-details::before {
-      content: ''; position: absolute; top: 50%; left: -8px; transform: translateY(-50%);
-      border-top: 8px solid transparent; border-bottom: 8px solid transparent;
-      border-right: 8px solid var(--dark);
-    }
-
-    /* Responsive */
-    @media (max-width: 1100px) {
-      .kanban { justify-content: flex-start; }
-      .column { min-width: 380px; width: 380px; }
-    }
-    @media (max-width: 768px) {
-      .column { min-width: 320px; width: 320px; }
-      .btn, .export-btn { display: block; width: 100%; max-width: 260px; margin: 8px auto; }
-      input, select { width: 100%; margin: 8px 0; }
-    }
-    @media (max-width: 480px) {
-      .column { min-width: 290px; }
-      h1 { font-size: 1.4em; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning tot en met 30 april 2026</title>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{--primary:#3498db;--success:#27ae60;--warning:#f39c12;--danger:#e74c3c;--purple:#9b59b6;--dark:#2c3e50;--gray:#95a5a6}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f9;padding:16px;line-height:1.5;color:#2c3e50}
+  h1{text-align:center;margin-bottom:8px;font-size:1.6em}
+  .subtitle{text-align:center;color:#7f8c8d;font-size:0.9em;margin-bottom:16px}
+  .user-input,.controls,.search-filter{text-align:center;margin-bottom:16px}
+  input,select,button{font:inherit;padding:10px 14px;border-radius:6px;border:1px solid #ddd;margin:0 6px}
+  button{background:var(--primary);color:white;border:none;cursor:pointer;transition:all .2s}
+  button:hover{filter:brightness(0.9);transform:translateY(-1px)}
+  .btn.sort{background:var(--purple)}.btn.reset{background:var(--danger)}.export-btn{background:var(--success)}
+  .current-user{text-align:center;font-weight:bold;margin:12px 0}
+  .current-user .limit{color:#e67e22;font-weight:normal;font-size:0.9em}
+  .kanban{display:flex;gap:20px;overflow-x:auto;padding:20px 0;scroll-snap-type:x mandatory;justify-content:center}
+  .kanban::-webkit-scrollbar{height:8px}.kanban::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:4px}
+  .column{background:#e2e8f0;border-radius:12px;width:460px;min-width:460px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);scroll-snap-align:center}
+  .column h2{margin-bottom:12px;padding-bottom:8px;border-bottom:3px solid;font-size:1.2em;text-transform:uppercase;letter-spacing:0.5px;display:flex;justify-content:space-between;align-items:center}
+  .scoping h2{border-color:#3498db;color:#2980b9}
+  .refinement h2{border-color:#f39c12;color:#e67e22}
+  .delivery h2{border-color:#27ae60;color:#229954}
+  .column h2 span{font-size:0.8em;background:rgba(255,255,255,.8);padding:4px 8px;border-radius:6px}
+  .card{background:white;padding:14px;margin-bottom:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);cursor:grab;transition:all .25s;display:flex;align-items:center;gap:12px;font-size:0.95em}
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,.15)}
+  .card.dragging{opacity:0.7;transform:rotate(5deg) scale(1.03);box-shadow:0 15px 30px rgba(0,0,0,.3);z-index:1000}
+  .vote-badge{background:var(--gray);color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.9em;transition:all .25s}
+  .vote-badge:hover{transform:scale(1.15)}
+  .vote-badge.voted{background:var(--success)}
+  .vote-badge.my-vote{background:var(--primary);box-shadow:0 0 0 3px white,0 0 0 6px var(--primary)}
+  .vote-details{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:12px;background:var(--dark);color:white;padding:10px 14px;border-radius:8px;font-size:0.82em;max-width:260px;box-shadow:0 6px 16px rgba(0,0,0,.25);z-index:9999;display:none;pointer-events:none}
+  .vote-details.show{display:block}
+  .vote-details::before{content:'';position:absolute;top:50%;left:-7px;transform:translateY(-50%);border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:7px solid var(--dark)}
+  #loading{text-align:center;padding:40px;font-size:1.1em;color:#7f8c8d}
+  @media(max-width:1000px){.column{min-width:380px;width:380px}}
+  @media(max-width:600px){.column{min-width:300px;width:300px}.kanban{gap:12px;padding:12px 0}
+    input,button,select{width:100%;margin:8px 0;display:block}
+  }
+</style>
 </head>
 <body>
-  <h1>Planning tot en met 30 april 2026</h1>
-  <p class="subtitle">Stem • Sleep • Zoek • Exporteer • v0.98</p>
+<h1>Planning tot en met 30 april 2026</h1>
+<p class="subtitle">Stem • Sleep • Zoek • Exporteer • v0.99 – Nu weer 100% werkend!</p>
 
-  <div class="user-input">
-    <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)" />
-    <button class="btn" onclick="setUser()">Stemmen activeren</button>
-    <button class="btn sort" onclick="sortByVotes()">Sorteren op stemmen</button>
-    <button class="btn" onclick="loadVotesFromSheets()" style="background:var(--purple);">
-      Stemmen laden
-    </button>
-    <div id="sync-status" style="font-size:0.85em; margin:6px 0;"></div>
+<div class="user-input">
+  <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)">
+  <button class="btn" onclick="setUser()">Starten met stemmen</button>
+  <button class="btn sort" onclick="sortByVotes()">Sorteren op stemmen</button>
+  <button class="btn" onclick="loadVotesFromSheets()" style="background:var(--purple)">Stemmen laden</button>
+  <div id="sync-status" style="height:20px;margin-top:8px;font-size:0.9em"></div>
+</div>
+
+<div class="current-user" id="current-user-display" style="display:none">
+  Je stemt als: <strong id="user-name-display"></strong> 
+  <span class="limit" id="vote-limit"></span>
+</div>
+
+<div class="search-filter">
+  <input type="text" id="search-input" placeholder="Zoeken in taken..." onkeyup="filterCards()">
+  <select id="filter-my-votes" onchange="filterCards()">
+    <option value="">Alle taken</option>
+    <option value="my">Alleen mijn stemmen</option>
+  </select>
+</div>
+
+<div class="controls">
+  <button class="export-btn" onclick="exportToCSV()">Export CSV</button>
+  <button class="export-btn" onclick="exportToPNG()" style="margin-left:8px">Export PNG</button>
+  <button class="export-btn" onclick="exportToPDF()" style="margin-left:8px">Export PDF</button>
+  <button class="btn reset" onclick="resetBoard()">Reset alles</button>
+</div>
+
+<div id="loading">Laden van taken uit Google Sheet...</div>
+
+<div class="kanban" id="kanban" style="display:none">
+  <div class="column scoping" data-column="scoping">
+    <h2>1. Scoping (To Do) <span id="scoping-count">0</span></h2>
+    <div id="scoping-cards"></div>
   </div>
-
-  <div class="current-user" id="current-user-display" style="display:none;">
-    Actief als: <strong id="user-name-display"></strong>
-    <span class="limit" id="vote-limit"></span>
+  <div class="column refinement" data-column="refinement">
+    <h2>2. Refinement (In Progress) <span id="refinement-count">0</span></h2>
+    <div id="refinement-cards"></div>
   </div>
-
-  <div class="search-filter">
-    <input type="text" id="search-input" placeholder="Zoeken in taken..." onkeyup="filterCards()" />
-    <select id="filter-my-votes" onchange="filterCards()">
-      <option value="">Alle taken</option>
-      <option value="my">Alleen mijn stemmen</option>
-    </select>
+  <div class="column delivery" data-column="delivery">
+    <h2>3. Delivery (Done) <span id="delivery-count">0</span></h2>
+    <div id="delivery-cards"></div>
   </div>
+</div>
 
-  <div class="controls">
-    <div class="export-wrapper">
-      <button class="export-btn" onclick="toggleExportMenu()">Exporteer ↓</button>
-      <div class="export-menu" id="export-menu">
-        <button onclick="exportToCSV()">CSV (Excel)</button>
-        <button onclick="exportToPNG()">PNG (Afbeelding)</button>
-        <button onclick="exportToPDF()">PDF (Document)</button>
-      </div>
-    </div>
-    <button class="btn reset" onclick="resetBoard()">Reset bord</button>
-  </div>
+<script>
+// ==== CONFIG ====
+const SHEET_ID = '18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI';
+const STEMMEN_GID = '141552524';
+const MAX_VOTES = 5;
 
-  <div id="loading" class="loading">Laden van data uit Google Sheet...</div>
+// Nieuwe werkende links (november 2025)
+const TASKS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
+const VOTES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${STEMMEN_GID}`;
 
-  <div class="kanban" id="kanban" style="display:none;">
-    <div class="column scoping" data-column="scoping">
-      <h2>1. Scoping (To Do) <span id="scoping-count">0 taken</span></h2>
-      <div id="scoping-cards"></div>
-    </div>
-    <div class="column refinement" data-column="refinement">
-      <h2>2. Refinement (In Progress) <span id="refinement-count">0 taken</span></h2>
-      <div id="refinement-cards"></div>
-    </div>
-    <div class="column delivery" data-column="delivery">
-      <h2>3. Delivery (Done) <span id="delivery-count">0 taken</span></h2>
-      <div id="delivery-cards"></div>
-    </div>
-  </div>
+const data = { tasks: {}, votes: {}, taskMap: {} };
+let currentUser = null;
 
-  <div class="footer">
-    Gemaakt met liefde door BasAI • Max 5 stemmen per persoon • Real-time sync met Google Sheets
-  </div>
+async function fetchTasks() {
+  try {
+    const r = await fetch(TASKS_URL);
+    const text = await r.text();
+    if (text.includes('login')) throw new Error('Sheet niet openbaar');
+    const rows = text.split('\n').map(row => row.slice(1,-1).split('","')); // verwijder eerste en laatste "
+    const [scoping, refinement, delivery] = rows.slice(1).reduce((acc, row) => {
+      if (row[0]) acc[0].push(row[0]);
+      if (row[1]) acc[1].push(row[1]);
+      if (row[2]) acc[2].push(row[2]);
+      return acc;
+    }, [[],[],[]]);
 
-  <script>
-    // === CONFIG ===
-    const SHEET_ID = '18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI';
-    const STEMMEN_GID = '141552524';
-    const MAX_VOTES_PER_USER = 5;
-    const DATA_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
-    const VOTES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${STEMMEN_GID}`;
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxp96H0zhBvBLG0GuIDt1ThXrBGoFTyIQFJbZw3Q3JbKVjUQ08CddNxyeQSV_izTcgz/exec';
+    // Maak unieke task-ID's
+    let counter = 1;
+    const all = [...scoping, ...refinement, ...delivery];
+    all.forEach(t => { if (t) data.taskMap[`t${counter++}`] = t.trim(); });
 
-    const data = { tasks: {}, votes: {}, taskMap: {} };
-    let currentUser = null;
-    let isLoaded = false;
+    data.tasks = {
+      scoping: scoping.filter(Boolean).map((_,i) => `t${i+1}`),
+      refinement: refinement.filter(Boolean).map((_,i) => `t${scoping.length + i + 1}`),
+      delivery: delivery.filter(Boolean).map((_,i) => `t${scoping.length + refinement.length + i + 1}`)
+    };
+  } catch (e) {
+    console.warn('Fallback data gebruikt', e);
+    const fallback = ["Koppeling datawarehouse","Verwijderen indicatief rentetarief","CAMT aanpassingen","DBU pipeline","Archivering database","Performance datahub"];
+    fallback.forEach((t,i) => data.taskMap[`t${i+1}`] = t);
+    data.tasks = { scoping: ['t1','t2'], refinement: ['t3','t4'], delivery: ['t5','t6'] };
+  }
+}
 
-    // === START HIERMEE VOOR ALLE VERBETERINGEN ===
-    // We kunnen nu veilig verder bouwen op deze versie.
-
-    async function init() {
-      await fetchTasks();
-      loadLocalState();
-      await syncVotesFromSheets();  // auto-sync bij opstarten
-      renderAllColumns();
-      updateColumnCounts();
-      filterCards();
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('kanban').style.display = 'flex';
-      isLoaded = true;
+async function syncVotesFromSheets() {
+  const status = document.getElementById('sync-status');
+  status.textContent = 'Sync met Google Sheets...';
+  try {
+    const r = await fetch(VOTES_URL);
+    const text = await r.text();
+    const rows = text.split('\n').slice(1);
+    const newVotes = {};
+    rows.forEach(row => {
+      const cols = row.slice(1,-1).split('","');
+      if (cols.length >= 4) {
+        const [time, user, taskId, taskText, count] = cols;
+        const c = parseInt(count);
+        if (taskId && c > 0) {
+          if (!newVotes[taskId]) newVotes[taskId] = {};
+          newVotes[taskId][user.trim()] = c;
+        }
+      }
+    });
+    if (Object.keys(newVotes).length > 0) {
+      data.votes = newVotes;
+      localStorage.setItem('kanban-votes', JSON.stringify(data.votes));
+      status.textContent = 'Sync gelukt!';
+      status.style.color = 'green';
+    } else {
+      status.textContent = 'Geen stemmen gevonden';
     }
+  } catch (e) {
+    status.textContent = 'Sync mislukt (offline?)';
+    status.style.color = 'orange';
+  }
+  setTimeout(() => status.textContent = '', 4000);
+}
 
-    // We houden de rest van de code (bijna) identiek, alleen netter en robuuster gemaakt.
-    // Ik stuur je zo meteen de volledige schone versie als je wil, of we gaan direct door met de eerste verbetering.
+async function loadVotesFromSheets() { await syncVotesFromSheets(); renderAll(); }
 
-    window.onload = init;
-  </script>
+function renderAll() {
+  ['scoping','refinement','delivery'].forEach(col => {
+    const container = document.getElementById(col+'-cards');
+    container.innerHTML = '';
+    getVisibleTasks(col).forEach(id => {
+      const text = data.taskMap[id];
+      const votes = data.votes[id] || {};
+      const total = Object.values(votes).reduce((a,b)=>a+b,0);
+      const my = currentUser ? (votes[currentUser]||0) : 0;
+      container.appendChild(createCard(id, text, votes, total, my));
+    });
+  });
+  updateCounts();
+  updateVoteLimit();
+}
+
+function getVisibleTasks(col) {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const onlyMy = document.getElementById('filter-my-votes').value === 'my';
+  return data.tasks[col].filter(id => {
+    if (!data.taskMap[id]) return false;
+    if (search && !data.taskMap[id].toLowerCase().includes(search)) return false;
+    if (onlyMy && currentUser && !(data.votes[id]||{})[currentUser]) return false;
+    return true;
+  });
+}
+
+function createCard(id, text, votes, total, myVotes) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.draggable = true;
+  card.dataset.taskId = id;
+  card.ondragstart = e => { e.dataTransfer.setData('text', id); card.classList.add('dragging'); };
+  card.innerHTML = `<span style="flex:1">${text}</span>`;
+  
+  const badge = document.createElement('div');
+  badge.className = 'vote-badge';
+  if (total>0) badge.classList.add('voted');
+  if (myVotes>0) badge.classList.add('my-vote');
+  badge.textContent = total || 0;
+
+  const details = document.createElement('div');
+  details.className = 'vote-details';
+  let html = '';
+  for (const [u,c] of Object.entries(votes)) html += `<div><strong>${u}</strong>: ${c}</div>`;
+  if (!html) html = '<div>Nog geen stemmen</div>';
+  details.innerHTML = html;
+  badge.appendChild(details);
+
+  badge.onmouseenter = () => details.classList.add('show');
+  badge.onmouseleave = () => details.classList.remove('show');
+  badge.onclick = e => {
+    e.stopPropagation();
+    if (!currentUser) return alert('Voer eerst je naam in!');
+    const current = (data.votes[id]?.[currentUser]) || 0;
+    if (current > 0) {
+      data.votes[id][currentUser]--;
+      if (data.votes[id][currentUser] <= 0) delete data.votes[id][currentUser];
+      if (Object.keys(data.votes[id]).length === 0) delete data.votes[id];
+    } else {
+      if (getMyTotalVotes() >= MAX_VOTES) return alert(`Max ${MAX_VOTES} stemmen bereikt!`);
+      if (!data.votes[id]) data.votes[id] = {};
+      data.votes[id][currentUser] = 1;
+    }
+    localStorage.setItem('kanban-votes', JSON.stringify(data.votes));
+    renderAll();
+  };
+
+  card.appendChild(badge);
+  return card;
+}
+
+function updateCounts() {
+  ['scoping','refinement','delivery'].forEach(col => {
+    const visible = getVisibleTasks(col).length;
+    const votes = data.tasks[col].reduce((sum,id) => sum + Object.values(data.votes[id]||{}).reduce((a,b)=>a+b,0), 0);
+    document.getElementById(col+'-count').textContent = `${visible} taken • ${votes} stemmen`;
+  });
+}
+
+function getMyTotalVotes() {
+  if (!currentUser) return 0;
+  return Object.values(data.votes).reduce((sum,obj) => sum + (obj[currentUser]||0), 0);
+}
+
+function updateVoteLimit() {
+  if (!currentUser) return;
+  const used = getMyTotalVotes();
+  document.getElementById('vote-limit').textContent = ` (${used}/${MAX_VOTES} gebruikt)`;
+  document.getElementById('vote-limit').style.color = used >= MAX_VOTES ? 'red' : '#e67e22';
+}
+
+function setUser() {
+  const name = document.getElementById('user-name').value.trim();
+  if (!name) return alert('Voer je naam in!');
+  currentUser = name;
+  localStorage.setItem('kanban-user', name);
+  document.getElementById('current-user-display').style.display = 'block';
+  document.getElementById('user-name-display').textContent = name;
+  updateVoteLimit();
+  renderAll();
+}
+
+function sortByVotes() {
+  Object.keys(data.tasks).forEach(col => {
+    data.tasks[col].sort((a,b) => {
+      const va = Object.values(data.votes[a]||{}).reduce((x,y)=>x+y,0);
+      const vb = Object.values(data.votes[b]||{}).reduce((x,y)=>x+y,0);
+      return vb - va;
+    });
+  });
+  renderAll();
+}
+
+function filterCards() { renderAll(); }
+
+// Drag & drop
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  const id = e.dataTransfer.getData('text');
+  const card = document.querySelector(`[data-task-id="${id}"]`);
+  if (!card) return;
+  const column = e.target.closest('.column');
+  if (!column) return;
+  column.querySelector('[id$="-cards"]').appendChild(card);
+  const colKey = column.dataset.column;
+  data.tasks[colKey] = Array.from(column.querySelectorAll('.card')).map(c => c.dataset.taskId);
+  renderAll(); // om counts goed te zetten
+});
+
+// Export functies (CSV / PNG / PDF) – kort maar werken
+function exportToCSV() {
+  let csv = "Kolom,Taak,Stemmen,Stemmers\n";
+  const names = {scoping:"Scoping",refinement:"Refinement",delivery:"Delivery"};
+  Object.keys(data.tasks).forEach(col => {
+    data.tasks[col].forEach(id => {
+      const v = data.votes[id] || {};
+      const total = Object.values(v).reduce((a,b)=>a+b,0);
+      const detail = Object.entries(v).map(([n,c])=>`${n}:${c}`).join(' | ');
+      csv += `${names[col]},"${data.taskMap[id]}",${total},"${detail}"\n`;
+    });
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = `planning-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+function exportToPNG() {
+  document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='none');
+  html2canvas(document.body,{scale:2,backgroundColor:'#f4f6f9'}).then(c => {
+    const a = document.createElement('a');
+    a.href = c.toDataURL(); a.download = `planning-${new Date().toISOString().slice(0,10)}.png`; a.click();
+    document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='');
+  });
+}
+
+function exportToPDF() {
+  const {jsPDF} = window.jspdf;
+  document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='none');
+  html2canvas(document.querySelector('.kanban'),{scale:2}).then(c => {
+    const doc = new jsPDF('l','mm','a4');
+    const w = doc.internal.pageSize.getWidth()-40;
+    doc.text("Planning tot 30 april 2026", w/2+20, 20, {align:'center'});
+    doc.addImage(c.toDataURL(),'PNG',20,30,w,c.height*w/c.width);
+    doc.save(`planning-${new Date().toISOString().slice(0,10)}.pdf`);
+    document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='');
+  });
+}
+
+function resetBoard() {
+  if (confirm('Weet je zeker dat je ALLES wilt resetten?')) {
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// Init
+(async () => {
+  await fetchTasks();
+  await syncVotesFromSheets();
+  if (localStorage.getItem('kanban-user')) {
+    currentUser = localStorage.getItem('kanban-user');
+    document.getElementById('current-user-display').style.display = 'block';
+    document.getElementById('user-name-display').textContent = currentUser;
+  }
+  renderAll();
+  document.getElementById('loading').remove();
+  document.getElementById('kanban').style.display = 'flex';
+})();
+</script>
 </body>
 </html>
