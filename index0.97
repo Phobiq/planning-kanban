@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planning tot en met 30 april 2026</title>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 16px;
+      line-height: 1.5;
+    }
+    h1 { text-align: center; color: #2c3e50; margin: 0 0 8px; font-size: 1.6em; }
+    .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9em; margin-bottom: 14px; }
+    .user-input, .controls, .search-filter { text-align: center; margin-bottom: 16px; }
+    input, button, select { font: inherit; border-radius: 6px; }
+    input[type="text"], select { padding: 9px 12px; border: 1px solid #ddd; margin: 0 6px; min-width: 180px; }
+    .btn, .export-btn {
+      background: #3498db; color: white; border: none; padding: 10px 18px; border-radius: 6px;
+      cursor: pointer; font-size: 0.92em; transition: all 0.2s; margin: 0 6px;
+    }
+    .btn:hover, .export-btn:hover { background: #2980b9; transform: translateY(-1px); }
+    .btn.sort { background: #9b59b6; } .btn.sort:hover { background: #8e44ad; }
+    .btn.reset { background: #e74c3c; } .btn.reset:hover { background: #c0392b; }
+    .export-btn { background: #27ae60; } .export-btn:hover { background: #229954; }
+
+    .export-wrapper { position: relative; display: inline-block; }
+    .export-menu {
+      display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      background: white; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000; min-width: 160px; margin-top: 6px;
+    }
+    .export-menu.show { display: block; }
+    .export-menu button {
+      display: block; width: 100%; padding: 10px 16px; background: none; border: none;
+      text-align: left; font-size: 0.9em; cursor: pointer; transition: background 0.2s;
+    }
+    .export-menu button:hover { background: #f0f0f0; }
+
+    .current-user {
+      text-align: center; font-weight: bold; color: #2c3e50; margin: 8px 0; font-size: 0.95em;
+    }
+    .current-user .limit { color: #e67e22; font-weight: normal; font-size: 0.85em; }
+
+    .kanban {
+      display: flex; gap: 20px; overflow-x: auto; padding: 12px 0; justify-content: center;
+      align-items: flex-start; max-width: 100%; margin: 0 auto; scroll-snap-type: x mandatory;
+      scrollbar-width: thin;
+    }
+    .kanban::-webkit-scrollbar { height: 8px; }
+    .kanban::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .kanban::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+
+    .column {
+      background: #e2e8f0; border-radius: 12px; width: 500px; min-width: 500px; padding: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05); flex: 0 0 auto; scroll-snap-align: center;
+    }
+    .column h2 {
+      margin: 0 0 12px; padding-bottom: 6px; border-bottom: 3px solid; font-size: 1.15em;
+      text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between;
+      align-items: center;
+    }
+    .column h2 span {
+      font-size: 0.78em; font-weight: normal; color: #555; background: rgba(255,255,255,0.7);
+      padding: 3px 7px; border-radius: 4px;
+    }
+    .scoping h2 { border-color: #3498db; color: #2980b9; }
+    .refinement h2 { border-color: #f39c12; color: #e67e22; }
+    .delivery h2 { border-color: #27ae60; color: #229954; }
+
+.card {
+  background: white;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  font-size: 0.95em;
+  line-height: 1.4;
+  cursor: grab;
+  transition: all 0.2s;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: visible !important;
+}
+.card:hover { transform: translateY(-1px); box-shadow: 0 5px 10px rgba(0,0,0,0.15); }
+.card.dragging { opacity: 0.6; transform: rotate(4deg) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.2); z-index: 1000; }
+
+    .vote-badge {
+      background: #95a5a6; color: white; font-weight: bold; font-size: 0.8em; width: 28px; height: 28px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: all 0.2s; position: relative;
+    }
+    .vote-badge:hover { transform: scale(1.12); }
+    .vote-badge.voted { background: #27ae60; }
+    .vote-badge.my-vote { background: #3498db; box-shadow: 0 0 0 2px white, 0 0 0 4px #3498db; }
+
+.vote-details {
+  position: absolute;
+  left: 100%;           /* Rechts van badge */
+  top: 50%;             /* Verticaal gecentreerd */
+  transform: translateY(-50%);
+  margin-left: 12px;    /* Afstand van kaartje */
+  background: #2c3e50;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.82em;
+  white-space: normal;
+  max-width: 240px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  z-index: 9999;
+  display: none;
+  pointer-events: none;
+  line-height: 1.4;
+  text-align: left;
+}
+.vote-details.show { display: block; }
+
+.vote-details::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -7px;                    /* Pijl links */
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 7px solid #2c3e50; /* Pijl naar links */
+}
+
+    .search-filter input { width: 260px; max-width: 100%; }
+    .footer { text-align: center; margin-top: 36px; color: #7f8c8d; font-size: 0.88em; }
+    .loading { text-align: center; color: #7f8c8d; font-style: italic; }
+
+    @media (max-width: 1100px) {
+      .kanban { justify-content: flex-start; padding: 0 16px; }
+      .column { min-width: 480px; width: 480px; }
+    }
+    @media (max-width: 1100px) {
+      body { padding: 12px; }
+      .kanban { gap: 16px; padding: 0 16px; }
+      .column { min-width: 320px; width: 320px; padding: 12px; }
+      .btn, .export-btn { padding: 9px 14px; font-size: 0.88em; margin: 4px; display: block; width: 100%; max-width: 220px; margin: 6px auto; }
+      input[type="text"], select { width: 100%; margin: 8px 0; display: block; }
+      .controls { display: flex; flex-direction: column; align-items: center; }
+      .export-wrapper { width: 100%; max-width: 220px; }
+      .export-menu { left: 0; transform: none; width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .column { min-width: 280px; width: 280px; }
+      h1 { font-size: 1.4em; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Planning tot en met 30 april 2026</h1>
+  <p class="subtitle">Stem • Sorteer • Zoek • Exporteer • V0.97 • Wacht om jouw beurt met stemmen!</p>
+
+<div class="user-input">
+  <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)" />
+  <button class="btn" onclick="setUser()">Stemmen instellen</button>
+  <button class="btn sort" onclick="sortByVotes()" style="margin-left: 8px;">Sorteren op stemmen</button>
+  <button class="btn" onclick="loadVotesFromSheets()" style="background:#9b59b6; margin-left: 8px;">
+    Stemmen laden
+  </button>
+  <div id="sync-status" style="font-size:0.8em; color:#27ae60; margin:4px 0; text-align:center;"></div>
+</div>
+  <div class="current-user" id="current-user-display" style="display:none;">
+    Je stemt als: <strong id="user-name-display"></strong>
+    <span class="limit" id="vote-limit"></span>
+  </div>
+
+  <div class="search-filter">
+    <input type="text" id="search-input" placeholder="Zoeken in taken..." onkeyup="filterCards()" />
+    <select id="filter-my-votes" onchange="filterCards()">
+      <option value="">Alle taken</option>
+      <option value="my">Alleen mijn stemmen</option>
+    </select>
+  </div>
+
+<div class="controls">
+  <div class="export-wrapper">
+    <button class="export-btn" onclick="toggleExportMenu()">Exporteer</button>
+    <div class="export-menu" id="export-menu">
+      <button onclick="exportToCSV()">CSV (Excel)</button>
+      <button onclick="exportToPNG()">PNG (Afbeelding)</button>
+      <button onclick="exportToPDF()">PDF (Document)</button>
+    </div>
+  </div>
+  <button class="btn reset" onclick="resetBoard()">Reset</button>
+</div>
+
+  <div id="loading" class="loading" style="display: block;">Laden van data uit Google Sheet...</div>
+
+  <div class="kanban" id="kanban" style="display: none;">
+    <div class="column scoping" data-column="scoping">
+      <h2>1. Scoping (To Do) <span id="scoping-count">0 taken</span></h2>
+      <div id="scoping-cards"></div>
+    </div>
+    <div class="column refinement" data-column="refinement">
+      <h2>2. Refinement (In Progress) <span id="refinement-count">0 taken</span></h2>
+      <div id="refinement-cards"></div>
+    </div>
+    <div class="column delivery" data-column="delivery">
+      <h2>3. Delivery (Done) <span id="delivery-count">0 taken</span></h2>
+      <div id="delivery-cards"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Gemaakt met liefde door BasAI • Max 5 stemmen per persoon • Data uit Google Sheet
+  </div>
+
+  <script>
+    const SHEET_ID = '18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    const MAX_VOTES_PER_USER = 5;
+
+    const data = { tasks: {}, votes: {}, taskMap: {} };
+    let currentUser = null;
+    let isLoaded = false;
+
+    async function fetchCSV() {
+      try {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error('Sheet niet openbaar');
+        const csvText = await response.text();
+        const rows = csvText.split('\n').map(row => row.split(',').map(cell => cell.trim().replace(/"/g, '')));
+        const headers = rows[0];
+        const scopingCol = headers.indexOf('Scoping');
+        const refinementCol = headers.indexOf('Refinement');
+        const deliveryCol = headers.indexOf('Delivery');
+
+        const scopingTasks = [], refinementTasks = [], deliveryTasks = [];
+        for (let i = 1; i < rows.length; i++) {
+          if (rows[i].length > 0) {
+            if (scopingCol !== -1 && rows[i][scopingCol]) scopingTasks.push(rows[i][scopingCol]);
+            if (refinementCol !== -1 && rows[i][refinementCol]) refinementTasks.push(rows[i][refinementCol]);
+            if (deliveryCol !== -1 && rows[i][deliveryCol]) deliveryTasks.push(rows[i][deliveryCol]);
+          }
+        }
+
+        const allTasks = [...scopingTasks, ...refinementTasks, ...deliveryTasks];
+        allTasks.forEach((text, index) => {
+          if (text) data.taskMap[`task-${index + 1}`] = text;
+        });
+
+        data.tasks = {
+          scoping: scopingTasks.map((_, i) => `task-${i + 1}`).filter((_, i) => scopingTasks[i]),
+          refinement: refinementTasks.map((_, i) => `task-${scopingTasks.length + i + 1}`).filter((_, i) => refinementTasks[i]),
+          delivery: deliveryTasks.map((_, i) => `task-${scopingTasks.length + refinementTasks.length + i + 1}`).filter((_, i) => deliveryTasks[i])
+        };
+
+        if (Object.keys(data.taskMap).length === 0) throw new Error('Geen taken');
+        return true;
+      } catch (error) {
+        console.error(error);
+        alert(`Fout bij laden sheet: ${error.message}. Gebruik fallback data.`);
+        const fallback = ["Koppeling datawarehouse Agentschap","Het verwijderen van het indicatieve rekeningcourant rentetarief","CAMT aanpassingen voor CAMT053 versie 2019 (gecomprimeerd)","Solution for running the DBUs without a change to the deployment pipeline","Archivering voor database reductie","Aanpassingen performance datahub","Afronding anonimisering","CR 240 deel 2 verrijken ING rekeningmutaties met juiste omschrijving","Toevoegen Rekening-mutatiefournier","Verbeteringen bankrekening wijzigen flow - toevoegen kredietlimiet","DP onderscheid wijzigen bankrekening flow - intradaglimiet","Einddatum verplicht stellen bij wijzigen RC-krediet","Opslaan .msg in zaken","Aanpassen knop \"Indicatieve marktwaarde berekenen\"","Adjustments text and layout pdf-rapport Totaaloverzicht Deelnemer"];
+        fallback.forEach((t, i) => data.taskMap[`task-${i+1}`] = t);
+        data.tasks = { scoping: fallback.slice(0,5).map((_,i)=>`task-${i+1}`), refinement: fallback.slice(5,12).map((_,i)=>`task-${i+6}`), delivery: fallback.slice(12).map((_,i)=>`task-${i+13}`) };
+        return true;
+      }
+    }
+
+    // === AUTOMATISCHE SYNC BIJ OPSTARTEN ===
+async function autoSyncVotes() {
+  const statusEl = document.getElementById('sync-status');
+  if (!statusEl) return;
+
+  statusEl.textContent = 'Sync met Google Sheets...';
+  statusEl.style.color = '#f39c12';
+
+  const STEMMEN_GID = '141552524'; // VERVANG DOOR JOUW "Stemmen" TABBLAD ID
+  const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${STEMMEN_GID}`;
+
+  try {
+    const resp = await fetch(sheetUrl);
+    if (!resp.ok) throw new Error('Tabblad niet gevonden');
+
+    const csv = await resp.text();
+    const rows = csv.split('\n').slice(1);
+
+    const newVotes = {};
+    let hasData = false;
+
+    rows.forEach(row => {
+      const cols = row.split(',').map(s => s.replace(/"/g, '').trim());
+      if (cols.length < 6) return;
+      const [time, user, taskId, taskText, countStr, fase] = cols;
+      const count = parseInt(countStr);
+      if (taskId && !isNaN(count) && count > 0) {
+        if (!newVotes[taskId]) newVotes[taskId] = {};
+        newVotes[taskId][user] = count;
+        hasData = true;
+      }
+    });
+
+    if (hasData) {
+      data.votes = newVotes;
+      localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
+      statusEl.textContent = 'Sync geslaagd!';
+      statusEl.style.color = '#27ae60';
+    } else {
+      statusEl.textContent = 'Geen stemmen gevonden';
+      statusEl.style.color = '#95a5a6';
+    }
+
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+
+  } catch (error) {
+    console.warn('Auto-sync mislukt (geen internet?):', error);
+    statusEl.textContent = 'Sync mislukt';
+    statusEl.style.color = '#e74c3c';
+    setTimeout(() => { statusEl.textContent = ''; }, 3000);
+  }
+}
+    
+async function init() {
+  await fetchCSV();
+  loadBoard(); // Laadt lokale data (taken + eventuele oude stemmen)
+  await autoSyncVotes(); // OVERSCHRIJFT stemmen met Google Sheets
+  renderAllColumns();
+  updateColumnCounts();
+  filterCards();
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('kanban').style.display = 'flex';
+  isLoaded = true;
+}
+
+    function setUser() {
+      const name = document.getElementById('user-name').value.trim();
+      if (!name) return alert("Voer een naam in!");
+      currentUser = name;
+      document.getElementById('current-user-display').style.display = 'block';
+      document.getElementById('user-name-display').textContent = name;
+      document.getElementById('user-name').value = '';
+      saveUser();
+      updateVoteLimit();
+      renderAllColumns();
+      filterCards();
+    }
+
+    function saveUser() { localStorage.setItem('kanban-current-user', currentUser); }
+
+    function getUserTotalVotes() {
+      if (!currentUser) return 0;
+      return Object.values(data.votes).reduce((sum, voteObj) => {
+        return sum + (voteObj[currentUser] || 0);
+      }, 0);
+    }
+
+    function updateVoteLimit() {
+      const used = getUserTotalVotes();
+      const limitEl = document.getElementById('vote-limit');
+      if (limitEl) {
+        limitEl.textContent = ` (${used}/${MAX_VOTES_PER_USER} stemmen gebruikt)`;
+        limitEl.style.color = used >= MAX_VOTES_PER_USER ? '#e74c3c' : '#e67e22';
+      }
+    }
+
+    function loadBoard() {
+      const saved = localStorage.getItem('kanban-board-v3');
+      if (saved) {
+        const loaded = JSON.parse(saved);
+        data.tasks = loaded.tasks || data.tasks;
+        data.votes = loaded.votes || {};
+      }
+      currentUser = localStorage.getItem('kanban-current-user');
+      if (currentUser) {
+        document.getElementById('current-user-display').style.display = 'block';
+        document.getElementById('user-name-display').textContent = currentUser;
+        updateVoteLimit();
+      }
+      renderAllColumns();
+      updateColumnCounts();
+      filterCards();
+    }
+
+    function renderAllColumns() {
+      Object.keys(data.tasks).forEach(col => {
+        const container = document.getElementById(col + '-cards');
+        container.innerHTML = '';
+        const visibleTasks = getFilteredTasks(col);
+        visibleTasks.forEach(id => {
+          const text = data.taskMap[id];
+          if (!text) return;
+          const voteObj = data.votes[id] || {};
+          const total = Object.values(voteObj).reduce((a, b) => a + b, 0);
+          const userVotes = currentUser ? (voteObj[currentUser] || 0) : 0;
+          container.appendChild(createCard(id, text, voteObj, total, userVotes));
+        });
+      });
+      updateColumnCounts();
+      updateVoteLimit();
+    }
+
+    function createCard(id, text, voteObj, total, userVotes) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.draggable = true;
+      card.ondragstart = drag;
+      card.dataset.taskId = id;
+
+      const span = document.createElement('span');
+      span.textContent = text;
+      span.style.flex = '1';
+
+      const badge = document.createElement('div');
+      badge.className = 'vote-badge';
+      if (total > 0) badge.classList.add('voted');
+      if (userVotes > 0) badge.classList.add('my-vote');
+      badge.textContent = total;
+
+      const details = document.createElement('div');
+      details.className = 'vote-details';
+      let html = '';
+      for (const [n, c] of Object.entries(voteObj)) {
+        html += `<div><strong>${n}</strong>: ${c}</div>`;
+      }
+      if (!html) html = '<div>Nog geen stemmen</div>';
+      details.innerHTML = html;
+      badge.appendChild(details);
+
+      badge.onclick = (e) => {
+        e.stopPropagation();
+        if (!currentUser) return alert("Voer eerst je naam in!");
+
+        const current = (data.votes[id] && data.votes[id][currentUser]) || 0;
+        const totalUsed = getUserTotalVotes();
+
+        if (current > 0) {
+          // Intrekken
+          data.votes[id][currentUser]--;
+          if (data.votes[id][currentUser] <= 0) delete data.votes[id][currentUser];
+          if (Object.keys(data.votes[id]).length === 0) delete data.votes[id];
+        } else {
+          // Toevoegen
+          if (totalUsed >= MAX_VOTES_PER_USER) {
+            alert(`Je hebt je limiet van ${MAX_VOTES_PER_USER} stemmen bereikt!`);
+            return;
+          }
+          if (!data.votes[id]) data.votes[id] = {};
+          data.votes[id][currentUser] = 1;
+        }
+
+        saveBoard();
+        renderAllColumns();
+        filterCards();
+      };
+
+badge.onmouseenter = () => {
+  details.classList.add('show');
+  // Force layout recalc
+  void details.offsetWidth;
+};
+badge.onmouseleave = () => {
+  details.classList.remove('show');
+};
+
+      card.appendChild(span);
+      card.appendChild(badge);
+      return card;
+    }
+
+    function getFilteredTasks(col) {
+      const search = document.getElementById('search-input').value.toLowerCase();
+      const filter = document.getElementById('filter-my-votes').value;
+      return data.tasks[col].filter(id => {
+        const text = data.taskMap[id]?.toLowerCase() || '';
+        const matchesSearch = !search || text.includes(search);
+        if (!matchesSearch) return false;
+        if (filter === 'my' && currentUser) {
+          const vote = data.votes[id] || {};
+          return (vote[currentUser] || 0) > 0;
+        }
+        return true;
+      });
+    }
+
+    function filterCards() { renderAllColumns(); }
+
+    function updateColumnCounts() {
+      Object.keys(data.tasks).forEach(col => {
+        const visible = getFilteredTasks(col).length;
+        const totalVotes = data.tasks[col].reduce((sum, id) => {
+          const v = data.votes[id] || {};
+          return sum + Object.values(v).reduce((a,b) => a+b, 0);
+        }, 0);
+        document.getElementById(col + '-count').textContent = `${visible} taken • ${totalVotes} stemmen`;
+      });
+    }
+
+    function allowDrop(e) { e.preventDefault(); }
+    function drag(e) {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      e.dataTransfer.setData("text", card.dataset.taskId);
+      card.classList.add('dragging');
+    }
+    function drop(e) {
+      e.preventDefault();
+      const id = e.dataTransfer.getData("text");
+      const card = document.querySelector(`[data-task-id="${id}"]`);
+      if (!card || !e.target.closest('.column')) return;
+      const col = e.target.closest('.column');
+      const targetContainer = col.querySelector('div[id$="-cards"]');
+      targetContainer.appendChild(card);
+      card.classList.remove('dragging');
+      updateDataFromDOM();
+      saveBoard();
+      filterCards();
+    }
+    function updateDataFromDOM() {
+      document.querySelectorAll('.column').forEach(col => {
+        const key = col.dataset.column;
+        data.tasks[key] = Array.from(col.querySelectorAll('.card')).map(c => c.dataset.taskId);
+      });
+    }
+
+    function sortByVotes() {
+      updateDataFromDOM();
+      Object.keys(data.tasks).forEach(col => {
+        data.tasks[col].sort((a, b) => {
+          const va = Object.values(data.votes[a] || {}).reduce((x,y)=>x+y,0);
+          const vb = Object.values(data.votes[b] || {}).reduce((x,y)=>x+y,0);
+          return vb - va;
+        });
+      });
+      renderAllColumns();
+      saveBoard();
+    }
+
+    function exportToCSV() {
+      updateDataFromDOM();
+      let csv = "Fase,ID,Taak,Totaal,Stemmers\r\n";
+      const names = { scoping: "Scoping", refinement: "Refinement", delivery: "Delivery" };
+      Object.keys(data.tasks).forEach(col => {
+        data.tasks[col].forEach(id => {
+          const text = data.taskMap[id];
+          const v = data.votes[id] || {};
+          const total = Object.values(v).reduce((a,b)=>a+b,0);
+          const stemmers = Object.entries(v).map(([n,c])=>`${n}:${c}`).join(" | ");
+          csv += `"${names[col]}","${id}","${text.replace(/"/g,'""')}","${total}","${stemmers}"\r\n`;
+        });
+      });
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      a.download = `planning-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function hideUI(callback) {
+      ['.user-input', '.current-user', '.controls', '.search-filter'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = 'none';
+      });
+      setTimeout(callback, 100);
+    }
+    function showUI() {
+      ['.user-input', '.controls', '.search-filter'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = 'block';
+      });
+      if (currentUser) document.querySelector('.current-user').style.display = 'block';
+    }
+
+    function exportToPNG() {
+      hideUI(() => {
+        html2canvas(document.body, { scale: 2, backgroundColor: '#f4f6f9' }).then(canvas => {
+          const link = document.createElement('a');
+          link.download = `planning-${new Date().toISOString().slice(0,10)}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+          showUI();
+        });
+      });
+    }
+
+function exportToPDF() {
+      const { jsPDF } = window.jspdf;
+      hideUI(() => {
+        html2canvas(document.querySelector('.kanban'), { scale: 2 }).then(canvas => {
+          const doc = new jsPDF('l', 'mm', 'a4');
+          const width = doc.internal.pageSize.getWidth();
+          doc.setFontSize(16);
+          doc.text("Planning tot en met 30 april 2026", width / 2, 20, { align: 'center' });
+          doc.setFontSize(10);
+          doc.text(`Export: ${new Date().toLocaleDateString('nl-NL')}`, width / 2, 28, { align: 'center' });
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = width - 40;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+          doc.addImage(imgData, 'PNG', 20, 35, imgWidth, imgHeight);
+          doc.save(`planning-${new Date().toISOString().slice(0,10)}.pdf`);
+          showUI();
+        });
+      });
+    }
+
+async function saveBoard() {
+  // 1. Lokaal opslaan
+  localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
+
+  // 2. Verstuur naar Google Sheets
+  const webAppUrl = 'https://script.google.com/macros/s/AKfycbxp96H0zhBvBLG0GuIDt1ThXrBGoFTyIQFJbZw3Q3JbKVjUQ08CddNxyeQSV_izTcgz/exec';
+  const payload = {
+    taskMap: data.taskMap,
+    tasks: data.tasks,
+    votes: data.votes
+  };
+
+  try {
+    await fetch(webAppUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    console.log('Volledige sync verzonden (overschreven in Sheets)');
+  } catch (error) {
+    console.warn('Sync mislukt (offline?):', error);
+  }
+}
+    
+    function resetBoard() {
+      if (confirm("Weet je zeker dat je alles wilt resetten?")) {
+        localStorage.removeItem('kanban-board-v3');
+        localStorage.removeItem('kanban-current-user');
+        location.reload();
+      }
+    }
+
+    function toggleExportMenu() {
+      document.getElementById('export-menu').classList.toggle('show');
+    }
+    document.addEventListener('click', e => {
+      const wrapper = document.querySelector('.export-wrapper');
+      if (!wrapper.contains(e.target)) {
+        document.getElementById('export-menu').classList.remove('show');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.column').forEach(col => {
+        col.ondrop = drop;
+        col.ondragover = allowDrop;
+      });
+    });
+
+// === STEMMEN LADEN VAN GOOGLE SHEETS ===
+async function loadVotesFromSheets() {
+  const statusEl = document.getElementById('sync-status');
+  statusEl.textContent = 'Laden uit Google Sheets...';
+  statusEl.style.color = '#f39c12';
+
+  const STEMMEN_GID = '141552524'; // VERVANG DOOR JOUW "Stemmen" TABBLAD ID
+  const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${STEMMEN_GID}`;
+
+  try {
+    const resp = await fetch(sheetUrl);
+    if (!resp.ok) throw new Error('Tabblad niet gevonden');
+
+    const csv = await resp.text();
+    const rows = csv.split('\n').slice(1); // Skip header
+
+    const newVotes = {};
+    let hasData = false;
+
+    rows.forEach(row => {
+      const cols = row.split(',').map(s => s.replace(/"/g, '').trim());
+      if (cols.length < 6) return;
+      const [time, user, taskId, taskText, countStr, fase] = cols;
+      const count = parseInt(countStr);
+      if (taskId && !isNaN(count) && count > 0) {
+        if (!newVotes[taskId]) newVotes[taskId] = {};
+        newVotes[taskId][user] = count;
+        hasData = true;
+      }
+    });
+
+    if (hasData) {
+      data.votes = newVotes;
+      localStorage.setItem('kanban-board-v3', JSON.stringify({ tasks: data.tasks, votes: data.votes }));
+      renderAllColumns();
+      updateColumnCounts();
+      updateVoteLimit();
+      statusEl.textContent = 'Stemmen geladen!';
+      statusEl.style.color = '#27ae60';
+    } else {
+      statusEl.textContent = 'Geen stemmen gevonden';
+      statusEl.style.color = '#e67e22';
+    }
+
+    setTimeout(() => { statusEl.textContent = ''; }, 4000);
+
+  } catch (error) {
+    console.error('Fout bij laden stemmen:', error);
+    statusEl.textContent = 'Fout: kon niet laden';
+    statusEl.style.color = '#e74c3c';
+    setTimeout(() => { statusEl.textContent = ''; }, 4000);
+  }
+}
+    
+    window.onload = init;
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
