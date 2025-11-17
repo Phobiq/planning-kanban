@@ -45,12 +45,21 @@
   .card:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,.15)}
   .card.dragging{opacity:0.7;transform:rotate(6deg) scale(1.04);box-shadow:0 20px 40px rgba(0,0,0,.3);z-index:1000}
 
-  .card-content{
-    display:flex;align-items:center;gap:14px;justify-content:space-between;pr:10px;
-  }
-  .card-text{
-    flex:1;font-size:0.96em;word-break:break-word;padding-right:50px; /* ruimte voor badge */
-  }
+.card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;          /* ruimte onder de tekst voor het ID-label */
+  position: relative;
+}
+.card-text {
+  flex: 1;
+  font-size: 0.96em;
+  word-break: break-word;
+  padding-right: 55px;          /* ruimte voor de stem-badge rechts */
+  padding-bottom: 10px;         /* voorkomt dat lange tekst over ID heen loopt */
+  min-height: 44px;             /* zorgt dat korte taken ook ruimte hebben */
+}
   .vote-badge{
     background:var(--g);color:white;width:44px;height:44px;border-radius:50%;
     display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.98em;
@@ -86,7 +95,7 @@
 </head>
 <body>
 <h1>Planning tot en met 30 april 2026</h1>
-<p class="subtitle">Stem • Sleep • Zoek • Exporteer • v1.11 – Taak-ID zichtbaar</p>
+<p class="subtitle">Stem • Sleep • Zoek • Exporteer • v1.12 – Taak-ID zichtbaar</p>
 
 <div class="user-input">
   <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)">
@@ -237,13 +246,13 @@ function createCard(id) {
   card.className = 'card'; card.draggable = true; card.dataset.taskId = id;
   card.ondragstart = e => { e.dataTransfer.setData('id',id); card.classList.add('dragging'); };
 
-  card.innerHTML = `
-    <div class="card-content">
-      <div class="card-text">${text}</div>
-      <div class="vote-badge">${total||0}</div>
-    </div>
-    <div class="task-id">ID: ${id.toUpperCase()}</div>
-  `;
+card.innerHTML = `
+  <div class="card-content">
+    <div class="card-text">${text}</div>
+    <div class="vote-badge">${total||0}</div>
+  </div>
+  <div class="task-id">ID: ${id.toUpperCase()}</div>
+`;
 
   const badge = card.querySelector('.vote-badge');
   if(total>0) badge.classList.add('voted');
@@ -348,5 +357,6 @@ function resetBoard() { if(confirm('Weet je zeker dat je ALLES wilt resetten?'))
 </script>
 </body>
 </html>
+
 
 
