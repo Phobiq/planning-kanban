@@ -7,53 +7,56 @@
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  :root{--primary:#3498db;--success:#27ae60;--warning:#f39c12;--danger:#e74c3c;--purple:#9b59b6;--dark:#2c3e50;--gray:#95a5a6}
+  :root{--p:#3498db;--s:#27ae60;--w:#f39c12;--d:#e74c3c;--u:#9b59b6;--k:#2c3e50;--g:#95a5a6}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f9;padding:16px;line-height:1.5;color:#2c3e50}
-  h1{text-align:center;margin-bottom:8px;font-size:1.6em}
-  .subtitle{text-align:center;color:#7f8c8d;font-size:0.9em;margin-bottom:16px}
-  .user-input,.controls,.search-filter{text-align:center;margin-bottom:16px}
-  input,select,button{font:inherit;padding:10px 14px;border-radius:6px;border:1px solid #ddd;margin:0 6px}
-  button{background:var(--primary);color:white;border:none;cursor:pointer;transition:all .2s}
-  button:hover{filter:brightness(0.9);transform:translateY(-1px)}
-  .btn.sort{background:var(--purple)}.btn.reset{background:var(--danger)}.export-btn{background:var(--success)}
-  .current-user{text-align:center;font-weight:bold;margin:12px 0}
+  body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f6f9;color:#2c3e50;padding:16px;line-height:1.5}
+  h1{text-align:center;margin:8px 0 4px;font-size:1.7em}
+  .subtitle{text-align:center;color:#7f8c8d;font-size:0.95em;margin-bottom:16px}
+  .user-input,.controls,.search-filter{text-align:center;margin-bottom:18px}
+  input,select,button{font:inherit;padding:11px 15px;border-radius:8px;border:1px solid #ddd;margin:0 6px}
+  button{background:var(--p);color:white;border:none;cursor:pointer;transition:.2s}
+  button:hover{filter:brightness(0.92);transform:translateY(-1px)}
+  .btn.sort{background:var(--u)}.btn.reset{background:var(--d)}.export-btn{background:var(--s)}
+  .current-user{text-align:center;font-weight:bold;margin:14px 0;font-size:1.05em}
   .current-user .limit{color:#e67e22;font-weight:normal;font-size:0.9em}
-  .kanban{display:flex;gap:20px;overflow-x:auto;padding:20px 0;scroll-snap-type:x mandatory;justify-content:center}
-  .kanban::-webkit-scrollbar{height:8px}.kanban::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:4px}
-  .column{background:#e2e8f0;border-radius:12px;width:460px;min-width:460px;padding:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);scroll-snap-align:center}
-  .column h2{margin-bottom:12px;padding-bottom:8px;border-bottom:3px solid;font-size:1.2em;text-transform:uppercase;letter-spacing:0.5px;display:flex;justify-content:space-between;align-items:center}
-  .scoping h2{border-color:#3498db;color:#2980b9}
-  .refinement h2{border-color:#f39c12;color:#e67e22}
-  .delivery h2{border-color:#27ae60;color:#229954}
-  .column h2 span{font-size:0.8em;background:rgba(255,255,255,.8);padding:4px 8px;border-radius:6px}
-  .card{background:white;padding:14px;margin-bottom:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.1);cursor:grab;transition:all .25s;display:flex;align-items:center;gap:12px;font-size:0.95em}
-  .card:hover{transform:translateY(-2px);box-shadow:0 8px 16px rgba(0,0,0,.15)}
-  .card.dragging{opacity:0.7;transform:rotate(5deg) scale(1.03);box-shadow:0 15px 30px rgba(0,0,0,.3);z-index:1000}
-  .vote-badge{background:var(--gray);color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.9em;transition:all .25s}
-  .vote-badge:hover{transform:scale(1.15)}
-  .vote-badge.voted{background:var(--success)}
-  .vote-badge.my-vote{background:var(--primary);box-shadow:0 0 0 3px white,0 0 0 6px var(--primary)}
-  .vote-details{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:12px;background:var(--dark);color:white;padding:10px 14px;border-radius:8px;font-size:0.82em;max-width:260px;box-shadow:0 6px 16px rgba(0,0,0,.25);z-index:9999;display:none;pointer-events:none}
+  .kanban{display:flex;gap:22px;overflow-x:auto;padding:20px 0;scroll-snap-type:x mandatory;justify-content:center}
+  .kanban::-webkit-scrollbar{height:9px}.kanban::-webkit-scrollbar-thumb{background:#c1c1c1;border-radius:4px}
+  .column{background:#e2e8f0;border-radius:14px;width:480px;min-width:480px;padding:18px;box-shadow:0 6px 16px rgba(0,0,0,.08);scroll-snap-align:center}
+  .column h2{margin-bottom:14px;padding-bottom:8px;border-bottom:3px solid;font-size:1.25em;text-transform:uppercase;letter-spacing:0.6px;display:flex;justify-content:space-between;align-items:center}
+  .scoping h2{border-color:var(--p);color:#2980b9}
+  .refinement h2{border-color:var(--w);color:#e67e22}
+  .delivery h2{border-color:var(--s);color:#229954}
+  .column h2 span{font-size:0.82em;background:rgba(255,255,255,.9);padding:5px 10px;border-radius:6px}
+  .card{background:white;padding:15px;margin-bottom:11px;border-radius:10px;box-shadow:0 3px 8px rgba(0,0,0,.1);cursor:grab;transition:all .25s;display:flex;align-items:center;gap:14px;font-size:0.96em;position:relative}
+  .card:hover{transform:translateY(-3px);box-shadow:0 10px 20px rgba(0,0,0,.15)}
+  .card.dragging{opacity:0.7;transform:rotate(6deg) scale(1.04);box-shadow:0 20px 40px rgba(0,0,0,.3);z-index:1000}
+  .vote-badge{background:var(--g);color:white;width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.95em;transition:all .25s;flex-shrink:0}
+  .vote-badge:hover{transform:scale(1.18)}
+  .vote-badge.voted{background:var(--s)}
+  .vote-badge.my-vote{background:var(--p);box-shadow:0 0 0 3px white,0 0 0 6px var(--p)}
+  .vote-details{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:14px;background:var(--k);color:white;padding:12px 16px;border-radius:10px;font-size:0.86em;max-width:280px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:9999;display:none;pointer-events:none}
   .vote-details.show{display:block}
-  .vote-details::before{content:'';position:absolute;top:50%;left:-7px;transform:translateY(-50%);border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:7px solid var(--dark)}
-  #loading{text-align:center;padding:40px;font-size:1.1em;color:#7f8c8d}
-  @media(max-width:1000px){.column{min-width:380px;width:380px}}
-  @media(max-width:600px){.column{min-width:300px;width:300px}.kanban{gap:12px;padding:12px 0}
+  .vote-details::before{content:'';position:absolute;top:50%;left:-8px;transform:translateY(-50%);border:8px solid transparent;border-right-color:var(--k)}
+  #loading{text-align:center;padding:60px 20px;font-size:1.2em;color:#7f8c8d}
+  #sync-status{height:24px;font-size:0.9em}
+  @media(max-width:1100px){.column{min-width:400px;width:400px}}
+  @media(max-width:800px){.column{min-width:340px;width:340px}
     input,button,select{width:100%;margin:8px 0;display:block}
+    .kanban{gap:16px;padding:16px 0}
   }
+  @media(max-width:500px){.column{min-width:300px}h1{font-size:1.5em}}
 </style>
 </head>
 <body>
 <h1>Planning tot en met 30 april 2026</h1>
-<p class="subtitle">Stem • Sleep • Zoek • Exporteer • v0.99 – Nu weer 100% werkend!</p>
+<p class="subtitle">Stem • Sleep • Zoek • Exporteer • v1.0 – Volledig sync weer actief!</p>
 
 <div class="user-input">
   <input type="text" id="user-name" placeholder="Jouw naam (bijv. Bas)">
   <button class="btn" onclick="setUser()">Starten met stemmen</button>
   <button class="btn sort" onclick="sortByVotes()">Sorteren op stemmen</button>
-  <button class="btn" onclick="loadVotesFromSheets()" style="background:var(--purple)">Stemmen laden</button>
-  <div id="sync-status" style="height:20px;margin-top:8px;font-size:0.9em"></div>
+  <button class="btn" onclick="loadVotesFromSheets()" style="background:var(--u)">Stemmen laden</button>
+  <div id="sync-status"></div>
 </div>
 
 <div class="current-user" id="current-user-display" style="display:none">
@@ -70,9 +73,9 @@
 </div>
 
 <div class="controls">
-  <button class="export-btn" onclick="exportToCSV()">Export CSV</button>
-  <button class="export-btn" onclick="exportToPNG()" style="margin-left:8px">Export PNG</button>
-  <button class="export-btn" onclick="exportToPDF()" style="margin-left:8px">Export PDF</button>
+  <button class="export-btn" onclick="exportToCSV()">CSV</button>
+  <button class="export-btn" onclick="exportToPNG()">PNG</button>
+  <button class="export-btn" onclick="exportToPDF()">PDF</button>
   <button class="btn reset" onclick="resetBoard()">Reset alles</button>
 </div>
 
@@ -94,150 +97,139 @@
 </div>
 
 <script>
-// ==== CONFIG ====
+// =============== CONFIG ===============
 const SHEET_ID = '18IFms6irl9dz_wPku-LdAgsrm681mttYSBuhWmCHLfI';
 const STEMMEN_GID = '141552524';
 const MAX_VOTES = 5;
 
-// Nieuwe werkende links (november 2025)
 const TASKS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Sheet1`;
 const VOTES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${STEMMEN_GID}`;
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxp96H0zhBvBLG0GuIDt1ThXrBGoFTyIQFJbZw3Q3JbKVjUQ08CddNxyeQSV_izTcgz/exec';
 
-const data = { tasks: {}, votes: {}, taskMap: {} };
+const data = { tasks: {scoping:[], refinement:[], delivery:[]}, votes: {}, taskMap: {} };
 let currentUser = null;
 
+// =============== LADEN TAKEN ===============
 async function fetchTasks() {
   try {
-    const r = await fetch(TASKS_URL);
+    const r = await fetch(TASKS_URL + '&headers=1');
     const text = await r.text();
-    if (text.includes('login')) throw new Error('Sheet niet openbaar');
-    const rows = text.split('\n').map(row => row.slice(1,-1).split('","')); // verwijder eerste en laatste "
-    const [scoping, refinement, delivery] = rows.slice(1).reduce((acc, row) => {
-      if (row[0]) acc[0].push(row[0]);
-      if (row[1]) acc[1].push(row[1]);
-      if (row[2]) acc[2].push(row[2]);
-      return acc;
-    }, [[],[],[]]);
-
-    // Maak unieke task-ID's
-    let counter = 1;
-    const all = [...scoping, ...refinement, ...delivery];
-    all.forEach(t => { if (t) data.taskMap[`t${counter++}`] = t.trim(); });
-
-    data.tasks = {
-      scoping: scoping.filter(Boolean).map((_,i) => `t${i+1}`),
-      refinement: refinement.filter(Boolean).map((_,i) => `t${scoping.length + i + 1}`),
-      delivery: delivery.filter(Boolean).map((_,i) => `t${scoping.length + refinement.length + i + 1}`)
-    };
-  } catch (e) {
-    console.warn('Fallback data gebruikt', e);
-    const fallback = ["Koppeling datawarehouse","Verwijderen indicatief rentetarief","CAMT aanpassingen","DBU pipeline","Archivering database","Performance datahub"];
-    fallback.forEach((t,i) => data.taskMap[`t${i+1}`] = t);
-    data.tasks = { scoping: ['t1','t2'], refinement: ['t3','t4'], delivery: ['t5','t6'] };
+    const rows = text.split('\n').map(l => l.slice(1,-1).split('","'));
+    const scoping = [], refinement = [], delivery = [];
+    rows.slice(1).forEach(row => {
+      if (row[0]) scoping.push(row[0].trim());
+      if (row[1]) refinement.push(row[1].trim());
+      if (row[2]) delivery.push(row[2].trim());
+    });
+    let id = 1;
+    [...scoping, ...refinement, ...delivery].forEach(t => { if(t) data.taskMap['t'+id++] = t; });
+    data.tasks.scoping = scoping.map((_,i)=>`t${i+1}`);
+    data.tasks.refinement = refinement.map((_,i)=>`t${scoping.length+i+1}`);
+    data.tasks.delivery = delivery.map((_,i)=>`t${scoping.length+refinement.length+i+1}`);
+  } catch(e) {
+    console.warn('Fallback data', e);
+    const fb = ["Koppeling datawarehouse","Verwijderen indicatief rentetarief","CAMT aanpassingen","DBU pipeline","Archivering database"];
+    fb.forEach((t,i)=>data.taskMap['t'+(i+1)]=t);
+    data.tasks = {scoping:['t1','t2'], refinement:['t3','t4'], delivery:['t5']};
   }
 }
 
+// =============== SYNC MET GOOGLE SHEETS ===============
 async function syncVotesFromSheets() {
   const status = document.getElementById('sync-status');
-  status.textContent = 'Sync met Google Sheets...';
+  status.textContent = 'Sync met Google Sheets...'; status.style.color = '#f39c12';
   try {
     const r = await fetch(VOTES_URL);
     const text = await r.text();
     const rows = text.split('\n').slice(1);
     const newVotes = {};
     rows.forEach(row => {
-      const cols = row.slice(1,-1).split('","');
-      if (cols.length >= 4) {
-        const [time, user, taskId, taskText, count] = cols;
-        const c = parseInt(count);
-        if (taskId && c > 0) {
+      const c = row.slice(1,-1).split('","');
+      if (c.length >= 5) {
+        const taskId = c[2]; const user = c[1]; const cnt = parseInt(c[4]);
+        if (taskId && cnt > 0) {
           if (!newVotes[taskId]) newVotes[taskId] = {};
-          newVotes[taskId][user.trim()] = c;
+          newVotes[taskId][user.trim()] = cnt;
         }
       }
     });
-    if (Object.keys(newVotes).length > 0) {
-      data.votes = newVotes;
-      localStorage.setItem('kanban-votes', JSON.stringify(data.votes));
-      status.textContent = 'Sync gelukt!';
-      status.style.color = 'green';
-    } else {
-      status.textContent = 'Geen stemmen gevonden';
-    }
-  } catch (e) {
-    status.textContent = 'Sync mislukt (offline?)';
-    status.style.color = 'orange';
+    if (Object.keys(newVotes).length) data.votes = newVotes;
+    localStorage.setItem('kanban-votes', JSON.stringify(data.votes));
+    status.textContent = 'Sync gelukt!'; status.style.color = 'green';
+  } catch(e) {
+    status.textContent = 'Sync mislukt (offline?)'; status.style.color = 'orange';
   }
-  setTimeout(() => status.textContent = '', 4000);
+  setTimeout(()=>status.textContent='',4000);
 }
 
-async function loadVotesFromSheets() { await syncVotesFromSheets(); renderAll(); }
+async function saveToSheets() {
+  if (!currentUser) return;
+  const payload = { action:"save", user:currentUser, votes:data.votes, tasks:data.tasks, taskMap:data.taskMap };
+  try {
+    await fetch(WEB_APP_URL, {method:"POST",mode:"no-cors",body:JSON.stringify(payload)});
+  } catch(e) { console.warn('Sync mislukt',e); }
+}
 
+// =============== RENDEREN ===============
 function renderAll() {
   ['scoping','refinement','delivery'].forEach(col => {
-    const container = document.getElementById(col+'-cards');
-    container.innerHTML = '';
-    getVisibleTasks(col).forEach(id => {
-      const text = data.taskMap[id];
-      const votes = data.votes[id] || {};
-      const total = Object.values(votes).reduce((a,b)=>a+b,0);
-      const my = currentUser ? (votes[currentUser]||0) : 0;
-      container.appendChild(createCard(id, text, votes, total, my));
-    });
+    const cont = document.getElementById(col+'-cards'); cont.innerHTML = '';
+    getVisible(col).forEach(id => cont.appendChild(createCard(id)));
   });
-  updateCounts();
-  updateVoteLimit();
+  updateCounts(); updateLimit();
 }
 
-function getVisibleTasks(col) {
+function getVisible(col) {
   const search = document.getElementById('search-input').value.toLowerCase();
-  const onlyMy = document.getElementById('filter-my-votes').value === 'my';
+  const onlyMy = document.getElementById('filter-my-votes').value==='my';
   return data.tasks[col].filter(id => {
-    if (!data.taskMap[id]) return false;
-    if (search && !data.taskMap[id].toLowerCase().includes(search)) return false;
-    if (onlyMy && currentUser && !(data.votes[id]||{})[currentUser]) return false;
+    const text = data.taskMap[id] || '';
+    if (search && !text.toLowerCase().includes(search)) return false;
+    if (onlyMy && currentUser && !(data.votes[id]?.[currentUser])) return false;
     return true;
   });
 }
 
-function createCard(id, text, votes, total, myVotes) {
+function createCard(id) {
+  const text = data.taskMap[id];
+  const votes = data.votes[id] || {};
+  const total = Object.values(votes).reduce((a,b)=>a+b,0);
+  const mine = currentUser ? (votes[currentUser]||0) : 0;
+
   const card = document.createElement('div');
-  card.className = 'card';
-  card.draggable = true;
-  card.dataset.taskId = id;
-  card.ondragstart = e => { e.dataTransfer.setData('text', id); card.classList.add('dragging'); };
+  card.className = 'card'; card.draggable = true; card.dataset.taskId = id;
+  card.ondragstart = e => { e.dataTransfer.setData('id',id); card.classList.add('dragging'); };
   card.innerHTML = `<span style="flex:1">${text}</span>`;
-  
+
   const badge = document.createElement('div');
   badge.className = 'vote-badge';
-  if (total>0) badge.classList.add('voted');
-  if (myVotes>0) badge.classList.add('my-vote');
-  badge.textContent = total || 0;
+  if(total>0) badge.classList.add('voted');
+  if(mine>0) badge.classList.add('my-vote');
+  badge.textContent = total||0;
 
   const details = document.createElement('div');
   details.className = 'vote-details';
-  let html = '';
-  for (const [u,c] of Object.entries(votes)) html += `<div><strong>${u}</strong>: ${c}</div>`;
-  if (!html) html = '<div>Nog geen stemmen</div>';
-  details.innerHTML = html;
+  let html = Object.entries(votes).map(([u,c])=>`<div><strong>${u}</strong>: ${c}</div>`).join('');
+  details.innerHTML = html||'<div>Nog geen stemmen</div>';
   badge.appendChild(details);
 
   badge.onmouseenter = () => details.classList.add('show');
   badge.onmouseleave = () => details.classList.remove('show');
+
   badge.onclick = e => {
     e.stopPropagation();
     if (!currentUser) return alert('Voer eerst je naam in!');
-    const current = (data.votes[id]?.[currentUser]) || 0;
-    if (current > 0) {
+    if (mine > 0) {
       data.votes[id][currentUser]--;
       if (data.votes[id][currentUser] <= 0) delete data.votes[id][currentUser];
-      if (Object.keys(data.votes[id]).length === 0) delete data.votes[id];
+      if (!Object.keys(data.votes[id]).length) delete data.votes[id];
     } else {
-      if (getMyTotalVotes() >= MAX_VOTES) return alert(`Max ${MAX_VOTES} stemmen bereikt!`);
+      if (getMyVotes() >= MAX_VOTES) return alert(`Je hebt al ${MAX_VOTES} stemmen gebruikt!`);
       if (!data.votes[id]) data.votes[id] = {};
       data.votes[id][currentUser] = 1;
     }
     localStorage.setItem('kanban-votes', JSON.stringify(data.votes));
+    saveToSheets();
     renderAll();
   };
 
@@ -247,24 +239,24 @@ function createCard(id, text, votes, total, myVotes) {
 
 function updateCounts() {
   ['scoping','refinement','delivery'].forEach(col => {
-    const visible = getVisibleTasks(col).length;
-    const votes = data.tasks[col].reduce((sum,id) => sum + Object.values(data.votes[id]||{}).reduce((a,b)=>a+b,0), 0);
+    const visible = getVisible(col).length;
+    const votes = data.tasks[col].reduce((s,id)=> s + Object.values(data.votes[id]||{}).reduce((a,b)=>a+b,0),0);
     document.getElementById(col+'-count').textContent = `${visible} taken • ${votes} stemmen`;
   });
 }
 
-function getMyTotalVotes() {
-  if (!currentUser) return 0;
-  return Object.values(data.votes).reduce((sum,obj) => sum + (obj[currentUser]||0), 0);
+function getMyVotes() {
+  return Object.values(data.votes).reduce((s,obj)=> s + (obj[currentUser]||0),0);
 }
 
-function updateVoteLimit() {
+function updateLimit() {
   if (!currentUser) return;
-  const used = getMyTotalVotes();
+  const used = getMyVotes();
   document.getElementById('vote-limit').textContent = ` (${used}/${MAX_VOTES} gebruikt)`;
-  document.getElementById('vote-limit').style.color = used >= MAX_VOTES ? 'red' : '#e67e22';
+  document.getElementById('vote-limit').style.color = used>=MAX_VOTES ? 'red' : '#e67e22';
 }
 
+// =============== GEBRUIKER ===============
 function setUser() {
   const name = document.getElementById('user-name').value.trim();
   if (!name) return alert('Voer je naam in!');
@@ -272,10 +264,10 @@ function setUser() {
   localStorage.setItem('kanban-user', name);
   document.getElementById('current-user-display').style.display = 'block';
   document.getElementById('user-name-display').textContent = name;
-  updateVoteLimit();
-  renderAll();
+  updateLimit(); renderAll();
 }
 
+// =============== SORTEREN / FILTER ===============
 function sortByVotes() {
   Object.keys(data.tasks).forEach(col => {
     data.tasks[col].sort((a,b) => {
@@ -289,44 +281,44 @@ function sortByVotes() {
 
 function filterCards() { renderAll(); }
 
-// Drag & drop
+// =============== DRAG & DROP ===============
 document.addEventListener('dragover', e => e.preventDefault());
 document.addEventListener('drop', e => {
   e.preventDefault();
-  const id = e.dataTransfer.getData('text');
+  const id = e.dataTransfer.getData('id');
   const card = document.querySelector(`[data-task-id="${id}"]`);
   if (!card) return;
   const column = e.target.closest('.column');
   if (!column) return;
   column.querySelector('[id$="-cards"]').appendChild(card);
-  const colKey = column.dataset.column;
-  data.tasks[colKey] = Array.from(column.querySelectorAll('.card')).map(c => c.dataset.taskId);
-  renderAll(); // om counts goed te zetten
+  const key = column.dataset.column;
+  data.tasks[key] = Array.from(column.querySelectorAll('.card')).map(c=>c.dataset.taskId);
+  saveToSheets();
+  renderAll();
 });
 
-// Export functies (CSV / PNG / PDF) – kort maar werken
+// =============== EXPORT ===============
 function exportToCSV() {
-  let csv = "Kolom,Taak,Stemmen,Stemmers\n";
+  let csv = "Kolom,Taak,Totaal stemmen,Stemmers\n";
   const names = {scoping:"Scoping",refinement:"Refinement",delivery:"Delivery"};
   Object.keys(data.tasks).forEach(col => {
     data.tasks[col].forEach(id => {
-      const v = data.votes[id] || {};
-      const total = Object.values(v).reduce((a,b)=>a+b,0);
-      const detail = Object.entries(v).map(([n,c])=>`${n}:${c}`).join(' | ');
-      csv += `${names[col]},"${data.taskMap[id]}",${total},"${detail}"\n`;
+      const v = data.votes[id]||{};
+      const tot = Object.values(v).reduce((a,b)=>a+b,0);
+      const det = Object.entries(v).map(([n,c])=>`${n}:${c}`).join(' | ');
+      csv += `${names[col]},"${data.taskMap[id]}",${tot},"${det}"\n`;
     });
   });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download = `planning-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
 
 function exportToPNG() {
   document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='none');
-  html2canvas(document.body,{scale:2,backgroundColor:'#f4f6f9'}).then(c => {
-    const a = document.createElement('a');
-    a.href = c.toDataURL(); a.download = `planning-${new Date().toISOString().slice(0,10)}.png`; a.click();
+  html2canvas(document.body,{scale:2,backgroundColor:'#f4f6f9'}).then(c=>{
+    const a=document.createElement('a'); a.href=c.toDataURL(); a.download=`planning-${new Date().toISOString().slice(0,10)}.png`; a.click();
     document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='');
   });
 }
@@ -334,10 +326,10 @@ function exportToPNG() {
 function exportToPDF() {
   const {jsPDF} = window.jspdf;
   document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='none');
-  html2canvas(document.querySelector('.kanban'),{scale:2}).then(c => {
+  html2canvas(document.querySelector('.kanban'),{scale:2}).then(c=>{
     const doc = new jsPDF('l','mm','a4');
     const w = doc.internal.pageSize.getWidth()-40;
-    doc.text("Planning tot 30 april 2026", w/2+20, 20, {align:'center'});
+    doc.setFontSize(18); doc.text("Planning tot 30 april 2026", w/2+20, 20, {align:'center'});
     doc.addImage(c.toDataURL(),'PNG',20,30,w,c.height*w/c.width);
     doc.save(`planning-${new Date().toISOString().slice(0,10)}.pdf`);
     document.querySelectorAll('.user-input,.controls,.search-filter,.current-user').forEach(el=>el.style.display='');
@@ -346,12 +338,11 @@ function exportToPDF() {
 
 function resetBoard() {
   if (confirm('Weet je zeker dat je ALLES wilt resetten?')) {
-    localStorage.clear();
-    location.reload();
+    localStorage.clear(); location.reload();
   }
 }
 
-// Init
+// =============== START ===============
 (async () => {
   await fetchTasks();
   await syncVotesFromSheets();
